@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Notebook 1 – Variables & Functions (Terminal Style)</title>
+<style>
+  :root {
+    --bg: #050608;
+    --bg-alt: #0b0f14;
+    --accent: #00ff7f;
+    --accent-soft: #00ff7f33;
+    --text: #e5ffe5;
+    --muted: #7fbf7f;
+    --danger: #ff4d4d;
+    --border: #1a2a1a;
+    --font-mono: "Fira Code", "JetBrains Mono", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 0;
+    background: radial-gradient(circle at top, #101820 0, #050608 55%);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 14px;
+  }
+  .scanline {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0.15),
+      rgba(0, 0, 0, 0.15) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+    mix-blend-mode: soft-light;
+    opacity: 0.4;
+    z-index: 999;
+  }
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 20px 16px 60px;
+  }
+  .header {
+    border: 1px solid var(--border);
+    background: linear-gradient(135deg, #050608 0, #0b0f14 60%, #050608 100%);
+    padding: 16px 18px;
+    margin-bottom: 18px;
+    box-shadow: 0 0 18px #00ff7f22;
+  }
+  .header-title {
+    color: var(--accent);
+    font-size: 20px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  .header-sub {
+    color: var(--muted);
+    margin-top: 4px;
+  }
+  .badge {
+    display: inline-block;
+    border: 1px solid var(--accent-soft);
+    color: var(--accent);
+    padding: 2px 8px;
+    margin-top: 8px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: minmax(0, 2.1fr) minmax(0, 1.4fr);
+    gap: 16px;
+  }
+  @media (max-width: 900px) {
+    .grid { grid-template-columns: 1fr; }
+  }
+  .card {
+    border: 1px solid var(--border);
+    background: radial-gradient(circle at top left, #101820 0, #050608 55%);
+    padding: 14px 14px 16px;
+    position: relative;
+    overflow: hidden;
+  }
+  .card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, transparent 0, #00ff7f11 40%, transparent 100%);
+    opacity: 0.4;
+    pointer-events: none;
+  }
+  .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  .card-title {
+    color: var(--accent);
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+  }
+  .card-tag {
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .card-body {
+    position: relative;
+    z-index: 1;
+  }
+  h2, h3 {
+    color: var(--accent);
+    font-size: 15px;
+    margin: 18px 0 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+  }
+  p {
+    margin: 6px 0;
+    color: var(--text);
+  }
+  .quote {
+    border-left: 2px solid var(--accent-soft);
+    padding-left: 10px;
+    margin: 8px 0;
+    color: var(--muted);
+    font-size: 13px;
+  }
+  .inline-code {
+    background: #0b0f14;
+    border: 1px solid var(--border);
+    padding: 1px 4px;
+    border-radius: 2px;
+    font-size: 12px;
+  }
+  .terminal-block {
+    background: #050608;
+    border: 1px solid var(--border);
+    padding: 8px 10px;
+    font-size: 12px;
+    overflow-x: auto;
+    position: relative;
+  }
+  .terminal-block::before {
+    content: ">>> ";
+    color: var(--accent);
+    position: absolute;
+    left: 8px;
+    top: 6px;
+  }
+  .terminal-block pre {
+    margin: 0;
+    padding-left: 26px;
+    white-space: pre;
+  }
+  .label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+  input, select {
+    background: #050608;
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 4px 6px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    width: 100%;
+  }
+  input:focus, select:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent-soft);
+  }
+  button {
+    background: #050608;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    padding: 4px 10px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    cursor: pointer;
+  }
+  button:hover {
+    background: var(--accent-soft);
+  }
+  button:active {
+    transform: translateY(1px);
+  }
+  .row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+  .row > * { flex: 1; }
+  .output {
+    font-size: 13px;
+    color: var(--accent);
+    margin-top: 4px;
+    min-height: 18px;
+    white-space: pre-wrap;
+  }
+  .output.error {
+    color: var(--danger);
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    margin-top: 6px;
+  }
+  th, td {
+    border: 1px solid var(--border);
+    padding: 3px 4px;
+    text-align: right;
+  }
+  th {
+    background: #0b0f14;
+    color: var(--muted);
+  }
+  canvas {
+    width: 100%;
+    height: 260px;
+    background: #050608;
+    border: 1px solid var(--border);
+  }
+  .axis-label {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+  .pill {
+    display: inline-block;
+    padding: 1px 6px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    font-size: 11px;
+    color: var(--muted);
+    margin-right: 4px;
+  }
+  .section-sep {
+    margin: 22px 0 10px;
+    border-top: 1px dashed var(--border);
+  }
+  .exercise {
+    border: 1px dashed var(--border);
+    padding: 8px 10px;
+    margin: 6px 0;
+    background: #050608;
+  }
+  .exercise-title {
+    color: var(--accent);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    margin-bottom: 4px;
+  }
+  .hint-btn {
+    border-color: var(--border);
+    color: var(--muted);
+    font-size: 10px;
+    padding: 2px 6px;
+  }
+  .hint {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 4px;
+    display: none;
+  }
+</style>
+</head>
+<body>
+<div class="scanline"></div>
+<div class="container">
+  <div class="header">
+    <div class="header-title">Notebook 1 :: Variables & Functions</div>
+    <div class="header-sub">Smirnov – A Course of Higher Mathematics, Vol. 1 – Chapter I, §§1–6</div>
+    <div class="badge">Mode: Offline · HTML/JS · Terminal/Hacker Theme</div>
+  </div>
+
+  <div class="grid">
+    <!-- THEORY COLUMN -->
+    <div>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Magnitudes & Variables</div>
+          <div class="card-tag">theory</div>
+        </div>
+        <div class="card-body">
+          <p>A <strong>magnitude</strong> is anything that can be measured: length, mass, temperature, pressure, etc.</p>
+          <div class="quote">
+            “It is characteristic of a magnitude that it can be measured… Measurement results in an abstract number being obtained.”
+          </div>
+          <p>A <strong>variable</strong> is a magnitude that can take different values. We often denote it by <span class="inline-code">x</span>, <span class="inline-code">t</span>, etc.</p>
+          <p>Typical domains of variation:</p>
+          <ul>
+            <li><span class="inline-code">(a, b)</span> – open interval</li>
+            <li><span class="inline-code">[a, b]</span> – closed interval</li>
+            <li><span class="inline-code">(a, +∞)</span>, <span class="inline-code">(-∞, b]</span> – unbounded intervals</li>
+          </ul>
+          <div class="terminal-block">
+            <pre>
+x ∈ [0, 1]      // x varies between 0 and 1
+t ∈ (0, +∞)     // time t is positive
+p ∈ (0.1, 5]    // pressure p has a physical lower bound</pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:14px;">
+        <div class="card-header">
+          <div class="card-title">Functions & Dependence</div>
+          <div class="card-tag">theory</div>
+        </div>
+        <div class="card-body">
+          <p>When one variable depends on another, we write <span class="inline-code">y = f(x)</span>.</p>
+          <div class="quote">
+            “There must be a law which enables the corresponding value to be found… This is a function.”
+          </div>
+          <p>Example (Boyle’s law at constant temperature):</p>
+          <div class="terminal-block">
+            <pre>
+v = C / p      // volume v is a function of pressure p</pre>
+          </div>
+          <p>We distinguish:</p>
+          <ul>
+            <li><strong>Independent variable</strong> – chosen freely (e.g. <span class="inline-code">p</span>)</li>
+            <li><strong>Dependent variable</strong> – determined by the law (e.g. <span class="inline-code">v</span>)</li>
+          </ul>
+          <p>Functional relationships can be represented:</p>
+          <span class="pill">Analytically (formula)</span>
+          <span class="pill">Tabularly (table)</span>
+          <span class="pill">Graphically (curve)</span>
+        </div>
+      </div>
+
+      <div class="section-sep"></div>
+      <h2>Increments</h2>
+      <p>Given a function <span class="inline-code">y = f(x)</span>, the <strong>increment</strong> of <span class="inline-code">x</span> is</p>
+      <div class="terminal-block">
+        <pre>
+Δx = x₂ − x₁</pre>
+      </div>
+      <p>The corresponding increment of <span class="inline-code">y</span> is</p>
+      <div class="terminal-block">
+        <pre>
+Δy = f(x₂) − f(x₁)</pre>
+      </div>
+      <p>Later, this will lead to the concept of the derivative.</p>
+    </div>
+
+    <!-- INTERACTIVE COLUMN -->
+    <div>
+      <!-- FUNCTION EVALUATOR -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Function Evaluator</div>
+          <div class="card-tag">interactive</div>
+        </div>
+        <div class="card-body">
+          <p class="label">1. Define a function f(x)</p>
+          <input id="func-input" value="x*x - 3*x + 2" />
+          <p style="font-size:11px;color:var(--muted);margin-top:2px;">
+            Allowed: <span class="inline-code">x</span>, <span class="inline-code">+</span>, <span class="inline-code">-</span>, <span class="inline-code">*</span>, <span class="inline-code">/</span>, <span class="inline-code">^</span>, <span class="inline-code">sin(x)</span>, <span class="inline-code">exp(x)</span>, etc.
+          </p>
+          <div class="row" style="margin-top:8px;">
+            <div>
+              <p class="label">2. Choose x</p>
+              <input id="x-input" value="1.5" />
+            </div>
+            <div style="flex:0 0 auto;align-self:flex-end;">
+              <button id="eval-btn">Evaluate f(x)</button>
+            </div>
+          </div>
+          <div id="eval-output" class="output"></div>
+        </div>
+      </div>
+
+      <!-- TABLE GENERATOR -->
+      <div class="card" style="margin-top:14px;">
+        <div class="card-header">
+          <div class="card-title">Tabular Representation</div>
+          <div class="card-tag">interactive</div>
+        </div>
+        <div class="card-body">
+          <p class="label">Generate a table of x and f(x)</p>
+          <div class="row">
+            <div>
+              <span class="label">x min</span>
+              <input id="table-xmin" value="0" />
+            </div>
+            <div>
+              <span class="label">x max</span>
+              <input id="table-xmax" value="5" />
+            </div>
+            <div>
+              <span class="label">steps</span>
+              <input id="table-steps" value="6" />
+            </div>
+          </div>
+          <button id="table-btn">Generate table</button>
+          <div id="table-output"></div>
+        </div>
+      </div>
+
+      <!-- PLOTTER -->
+      <div class="card" style="margin-top:14px;">
+        <div class="card-header">
+          <div class="card-title">Graph Plotter</div>
+          <div class="card-tag">interactive</div>
+        </div>
+        <div class="card-body">
+          <p class="label">Plot f(x) on [xmin, xmax]</p>
+          <div class="row">
+            <div>
+              <span class="label">xmin</span>
+              <input id="plot-xmin" value="-5" />
+            </div>
+            <div>
+              <span class="label">xmax</span>
+              <input id="plot-xmax" value="5" />
+            </div>
+          </div>
+          <button id="plot-btn">Plot</button>
+          <canvas id="plot-canvas" width="500" height="260"></canvas>
+          <div class="axis-label">Horizontal axis: x · Vertical axis: f(x)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EXERCISES -->
+  <div class="section-sep"></div>
+  <h2>Exercises (Interactive Hints)</h2>
+
+  <div class="exercise">
+    <div class="exercise-title">Exercise 1 – Polynomial values</div>
+    <p>Compute <span class="inline-code">f(x) = x³ − 6x² + 11x − 6</span> at <span class="inline-code">x = −1, 0, 1, 2, 3, 4</span>.</p>
+    <button class="hint-btn" data-hint="hint1">Show hint</button>
+    <div id="hint1" class="hint">
+      Use the function evaluator with <span class="inline-code">x*x*x - 6*x*x + 11*x - 6</span> and change x.
+    </div>
+  </div>
+
+  <div class="exercise">
+    <div class="exercise-title">Exercise 2 – Reciprocal function</div>
+    <p>Plot <span class="inline-code">y = 1/x</span> on <span class="inline-code">[-5, -0.1]</span> and <span class="inline-code">[0.1, 5]</span>.</p>
+    <button class="hint-btn" data-hint="hint2">Show hint</button>
+    <div id="hint2" class="hint">
+      Use <span class="inline-code">1/x</span> as function. Plot first on [-5, -0.1], then on [0.1, 5].
+    </div>
+  </div>
+
+  <div class="exercise">
+    <div class="exercise-title">Exercise 3 – Linear interpolation</div>
+    <p>Given two points <span class="inline-code">(x₁, y₁)</span>, <span class="inline-code">(x₂, y₂)</span>, write the formula for the straight line through them.</p>
+    <button class="hint-btn" data-hint="hint3">Show hint</button>
+    <div id="hint3" class="hint">
+      The line is <span class="inline-code">y = y₁ + (y₂ − y₁) * (x − x₁) / (x₂ − x₁)</span>.
+    </div>
+  </div>
+
+  <div class="exercise">
+    <div class="exercise-title">Exercise 4 – Comparing graphs</div>
+    <p>Compare the graphs of <span class="inline-code">y = sqrt(x)</span> and <span class="inline-code">y = x²</span> on <span class="inline-code">[0, 4]</span>.</p>
+    <button class="hint-btn" data-hint="hint4">Show hint</button>
+    <div id="hint4" class="hint">
+      Plot <span class="inline-code">sqrt(x)</span> and then <span class="inline-code">x*x</span> on [0, 4]; observe which grows faster.
+    </div>
+  </div>
+</div>
+
+<script>
+  // --- Utility: parse expression safely-ish ---
+  function buildFunction(expr) {
+    // Replace ^ with ** for exponentiation
+    let e = expr.replace(/\^/g, "**");
+    // Allow Math.* without requiring user to type Math.
+    const funcs = ["sin","cos","tan","exp","log","sqrt","abs"];
+    funcs.forEach(fn => {
+      e = e.replace(new RegExp("\\b" + fn + "\\(", "g"), "Math." + fn + "(");
+    });
+    // Build function f(x)
+    return new Function("x", "return " + e + ";");
+  }
+
+  // --- Function evaluator ---
+  const funcInput = document.getElementById("func-input");
+  const xInput = document.getElementById("x-input");
+  const evalBtn = document.getElementById("eval-btn");
+  const evalOutput = document.getElementById("eval-output");
+
+  evalBtn.addEventListener("click", () => {
+    evalOutput.classList.remove("error");
+    try {
+      const f = buildFunction(funcInput.value);
+      const x = parseFloat(xInput.value);
+      if (isNaN(x)) throw new Error("x is not a number");
+      const y = f(x);
+      if (!isFinite(y)) throw new Error("Result is not finite");
+      evalOutput.textContent = "f(" + x + ") = " + y;
+    } catch (err) {
+      evalOutput.textContent = "Error: " + err.message;
+      evalOutput.classList.add("error");
+    }
+  });
+
+  // --- Table generator ---
+  const tableBtn = document.getElementById("table-btn");
+  const tableOut = document.getElementById("table-output");
+
+  tableBtn.addEventListener("click", () => {
+    tableOut.innerHTML = "";
+    try {
+      const f = buildFunction(funcInput.value);
+      const xmin = parseFloat(document.getElementById("table-xmin").value);
+      const xmax = parseFloat(document.getElementById("table-xmax").value);
+      const steps = parseInt(document.getElementById("table-steps").value, 10);
+      if (!isFinite(xmin) || !isFinite(xmax) || !isFinite(steps) || steps <= 1) {
+        throw new Error("Invalid range or steps");
+      }
+      const dx = (xmax - xmin) / (steps - 1);
+      let html = "<table><thead><tr><th>x</th><th>f(x)</th></tr></thead><tbody>";
+      for (let i = 0; i < steps; i++) {
+        const x = xmin + i * dx;
+        let y;
+        try { y = f(x); } catch { y = NaN; }
+        html += "<tr><td>" + x.toFixed(4) + "</td><td>" +
+                (isFinite(y) ? y.toFixed(6) : "NaN") + "</td></tr>";
+      }
+      html += "</tbody></table>";
+      tableOut.innerHTML = html;
+    } catch (err) {
+      tableOut.innerHTML = "<div class='output error'>Error: " + err.message + "</div>";
+    }
+  });
+
+  // --- Plotter ---
+  const plotBtn = document.getElementById("plot-btn");
+  const canvas = document.getElementById("plot-canvas");
+  const ctx = canvas.getContext("2d");
+
+  function drawAxes(xmin, xmax, ymin, ymax) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "#050608";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.strokeStyle = "#1a2a1a";
+    ctx.lineWidth = 1;
+
+    // grid
+    const gridCount = 10;
+    for (let i = 0; i <= gridCount; i++) {
+      const t = i / gridCount;
+      const x = t * canvas.width;
+      const y = t * canvas.height;
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, canvas.height);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(canvas.width, y);
+      ctx.stroke();
+    }
+
+    // axes
+    ctx.strokeStyle = "#00ff7f";
+    ctx.lineWidth = 1.2;
+
+    // x-axis
+    if (ymin < 0 && ymax > 0) {
+      const y0 = canvas.height * (1 - (0 - ymin) / (ymax - ymin));
+      ctx.beginPath();
+      ctx.moveTo(0, y0);
+      ctx.lineTo(canvas.width, y0);
+      ctx.stroke();
+    }
+
+    // y-axis
+    if (xmin < 0 && xmax > 0) {
+      const x0 = canvas.width * (0 - xmin) / (xmax - xmin);
+      ctx.beginPath();
+      ctx.moveTo(x0, 0);
+      ctx.lineTo(x0, canvas.height);
+      ctx.stroke();
+    }
+  }
+
+  plotBtn.addEventListener("click", () => {
+    try {
+      const f = buildFunction(funcInput.value);
+      const xmin = parseFloat(document.getElementById("plot-xmin").value);
+      const xmax = parseFloat(document.getElementById("plot-xmax").value);
+      if (!isFinite(xmin) || !isFinite(xmax) || xmin >= xmax) {
+        throw new Error("Invalid x-range");
+      }
+
+      // sample to estimate y-range
+      const N = 400;
+      const xs = [];
+      const ys = [];
+      for (let i = 0; i < N; i++) {
+        const t = i / (N - 1);
+        const x = xmin + t * (xmax - xmin);
+        let y;
+        try { y = f(x); } catch { y = NaN; }
+        if (isFinite(y)) {
+          xs.push(x);
+          ys.push(y);
+        }
+      }
+      if (ys.length === 0) throw new Error("No finite values to plot");
+
+      let ymin = Math.min(...ys);
+      let ymax = Math.max(...ys);
+      if (ymin === ymax) {
+        ymin -= 1;
+        ymax += 1;
+      }
+
+      drawAxes(xmin, xmax, ymin, ymax);
+
+      // plot curve
+      ctx.strokeStyle = "#00ff7f";
+      ctx.lineWidth = 1.4;
+      ctx.beginPath();
+      let started = false;
+      for (let i = 0; i < xs.length; i++) {
+        const x = xs[i];
+        const y = ys[i];
+        const px = (x - xmin) / (xmax - xmin) * canvas.width;
+        const py = (1 - (y - ymin) / (ymax - ymin)) * canvas.height;
+        if (!started) {
+          ctx.moveTo(px, py);
+          started = true;
+        } else {
+          ctx.lineTo(px, py);
+        }
+      }
+      ctx.stroke();
+    } catch (err) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = "#050608";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = "#ff4d4d";
+      ctx.font = "12px " + getComputedStyle(document.body).fontFamily;
+      ctx.fillText("Error: " + err.message, 10, 20);
+    }
+  });
+
+  // --- Hints ---
+  document.querySelectorAll(".hint-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const id = btn.getAttribute("data-hint");
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.style.display = el.style.display === "block" ? "none" : "block";
+    });
+  });
+
+  // Initial plot
+  plotBtn.click();
+</script>
+</body>
+</html>
+
