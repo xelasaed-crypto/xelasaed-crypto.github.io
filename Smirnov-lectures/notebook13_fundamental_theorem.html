@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Notebook 13 – Fundamental Theorem of Calculus (Terminal Style)</title>
+<style>
+  :root {
+    --bg: #050608;
+    --bg-alt: #0b0f14;
+    --accent: #00ff7f;
+    --accent-soft: #00ff7f33;
+    --text: #e5ffe5;
+    --muted: #7fbf7f;
+    --danger: #ff4d4d;
+    --border: #1a2a1a;
+    --font-mono: "Fira Code", "JetBrains Mono", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 0;
+    background: radial-gradient(circle at top, #101820 0, #050608 55%);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 14px;
+  }
+  .scanline {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0.15),
+      rgba(0, 0, 0, 0.15) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+    mix-blend-mode: soft-light;
+    opacity: 0.4;
+    z-index: 999;
+  }
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 20px 16px 60px;
+  }
+  .header {
+    border: 1px solid var(--border);
+    background: linear-gradient(135deg, #050608 0, #0b0f14 60%, #050608 100%);
+    padding: 16px 18px;
+    margin-bottom: 18px;
+    box-shadow: 0 0 18px #00ff7f22;
+  }
+  .header-title {
+    color: var(--accent);
+    font-size: 20px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  .header-sub {
+    color: var(--muted);
+    margin-top: 4px;
+  }
+  .badge {
+    display: inline-block;
+    border: 1px solid var(--accent-soft);
+    color: var(--accent);
+    padding: 2px 8px;
+    margin-top: 8px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: minmax(0, 2.1fr) minmax(0, 1.4fr);
+    gap: 16px;
+  }
+  @media (max-width: 900px) {
+    .grid { grid-template-columns: 1fr; }
+  }
+  .card {
+    border: 1px solid var(--border);
+    background: radial-gradient(circle at top left, #101820 0, #050608 55%);
+    padding: 14px 14px 16px;
+    position: relative;
+    overflow: hidden;
+  }
+  .card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, transparent 0, #00ff7f11 40%, transparent 100%);
+    opacity: 0.4;
+    pointer-events: none;
+  }
+  .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  .card-title {
+    color: var(--accent);
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+  }
+  .card-tag {
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .card-body {
+    position: relative;
+    z-index: 1;
+  }
+  h2 {
+    color: var(--accent);
+    font-size: 15px;
+    margin: 18px 0 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+  }
+  p {
+    margin: 6px 0;
+    color: var(--text);
+  }
+  .quote {
+    border-left: 2px solid var(--accent-soft);
+    padding-left: 10px;
+    margin: 8px 0;
+    color: var(--muted);
+    font-size: 13px;
+  }
+  .terminal-block {
+    background: #050608;
+    border: 1px solid var(--border);
+    padding: 8px 10px;
+    font-size: 12px;
+    overflow-x: auto;
+    position: relative;
+  }
+  .terminal-block::before {
+    content: ">>> ";
+    color: var(--accent);
+    position: absolute;
+    left: 8px;
+    top: 6px;
+  }
+  .terminal-block pre {
+    margin: 0;
+    padding-left: 26px;
+    white-space: pre;
+  }
+  .label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+  input, select {
+    background: #050608;
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 4px 6px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    width: 100%;
+  }
+  input:focus, select:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent-soft);
+  }
+  button {
+    background: #050608;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    padding: 4px 10px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    cursor: pointer;
+  }
+  button:hover {
+    background: var(--accent-soft);
+  }
+  button:active {
+    transform: translateY(1px);
+  }
+  .row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+  .row > * { flex: 1; }
+  .output {
+    font-size: 13px;
+    color: var(--accent);
+    margin-top: 4px;
+    min-height: 18px;
+    white-space: pre-wrap;
+  }
+  .output.error {
+    color: var(--danger);
+  }
+  canvas {
+    width: 100%;
+    height: 260px;
+    background: #050608;
+    border: 1px solid var(--border);
+  }
+  .axis-label {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+  .section-sep {
+    margin: 22px 0 10px;
+    border-top: 1px dashed var(--border);
+  }
+  .exercise {
+    border: 1px dashed var(--border);
+    padding: 8px 10px;
+    margin: 6px 0;
+    background: #050608;
+  }
+  .exercise-title {
+    color: var(--accent);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    margin-bottom: 4px;
+  }
+  .hint-btn {
+    border-color: var(--border);
+    color: var(--muted);
+    font-size: 10px;
+    padding: 2px 6px;
+  }
+  .hint {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 4px;
+    display: none;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    margin-top: 6px;
+  }
+  th, td {
+    border: 1px solid var(--border);
+    padding: 3px 4px;
+    text-align: left;
+  }
+  th {
+    background: #0b0f14;
+    color: var(--muted);
+  }
+</style>
+</head>
+<body>
+<div class="scanline"></div>
+<div class="container">
+  <div class="header">
+    <div class="header-title">Notebook 13 :: Fundamental Theorem of Calculus</div>
+    <div class="header-sub">Smirnov – A Course of Higher Mathematics, Vol. 1 – F.T.C., derivative of integral, evaluation</div>
+    <div class="badge">Mode: Offline · HTML/JS · Terminal/Hacker Theme</div>
+  </div>
+
+  <div class="grid">
+    <!-- THEORY COLUMN -->
+    <div>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">First Fundamental Theorem</div>
+          <div class="card-tag">theory</div>
+        </div>
+        <div class="card-body">
+          <p>Let f be continuous on [a, b]. Define</p>
+          <div class="terminal-block">
+            <pre>
+F(x) = ∫ₐˣ f(t) dt</pre>
+          </div>
+          <p>Then F is differentiable and</p>
+          <div class="terminal-block">
+            <pre>
+F'(x) = f(x)</pre>
+          </div>
+          <div class="quote">
+            “Differentiation undoes integration when the upper limit moves.”
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:14px;">
+        <div class="card-header">
+          <div class="card-title">Second Fundamental Theorem</div>
+          <div class="card-tag">theory</div>
+        </div>
+        <div class="card-body">
+          <p>If F is any antiderivative of f on [a, b], then</p>
+          <div class="terminal-block">
+            <pre>
+∫ₐᵇ f(x) dx = F(b) − F(a)</pre>
+          </div>
+          <p>This turns definite integrals into a difference of antiderivatives.</p>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:14px;">
+        <div class="card-header">
+          <div class="card-title">Integrals with Variable Limits</div>
+          <div class="card-tag">theory</div>
+        </div>
+        <div class="card-body">
+          <p>For</p>
+          <div class="terminal-block">
+            <pre>
+G(x) = ∫_{α(x)}^{β(x)} f(t) dt</pre>
+          </div>
+          <p>and smooth α, β, we have</p>
+          <div class="terminal-block">
+            <pre>
+G'(x) = f(β(x)) β'(x) − f(α(x)) α'(x)</pre>
+          </div>
+          <p>(Leibniz rule for differentiation under the integral sign with variable limits.)</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- INTERACTIVE COLUMN -->
+    <div>
+      <!-- F(x) = ∫_a^x f(t) dt EXPLORER -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">F(x) = ∫ₐˣ f(t) dt Explorer</div>
+          <div class="card-tag">interactive</div>
+        </div>
+        <div class="card-body">
+          <p class="label">f(t) (you may use x or t)</p>
+          <input id="fx-expr" value="sin(t)" />
+          <div class="row" style="margin-top:8px;">
+            <div>
+              <span class="label">a (lower limit)</span>
+              <input id="fx-a" value="0" />
+            </div>
+            <div>
+              <span class="label">x (evaluation point)</span>
+              <input id="fx-x" value="1.5708" />
+            </div>
+          </div>
+          <button id="fx-btn">Compute F(x) ≈ ∫ₐˣ f(t) dt</button>
+          <div id="fx-output" class="output"></div>
+        </div>
+      </div>
+
+      <!-- DERIVATIVE CHECKER -->
+      <div class="card" style="margin-top:14px;">
+        <div class="card-header">
+          <div class="card-title">Derivative of F(x) Check</div>
+          <div class="card-tag">interactive</div>
+        </div>
+        <div class="card-body">
+          <p class="label">Check numerically that F'(x) ≈ f(x)</p>
+          <div class="row">
+            <div>
+              <span class="label">x₀</span>
+              <input id="df-x0" value="1.0" />
+            </div>
+            <div>
+              <span class="label">h (step)</span>
+              <input id="df-h" value="0.001" />
+            </div>
+          </div>
+          <button id="df-btn">Approximate F'(x₀) and compare with f(x₀)</button>
+          <div id="df-output" class="output"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- GRAPH: f AND F -->
+  <div class="section-sep"></div>
+  <h2>Graph: f(x) and F(x) = ∫ₐˣ f(t) dt</h2>
+  <div class="grid">
+    <div>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">f(x) and Area Accumulation</div>
+          <div class="card-tag">interactive</div>
+        </div>
+        <div class="card-body">
+          <p class="label">Plot range</p>
+          <div class="row">
+            <div>
+              <span class="label">x-min</span>
+              <input id="plot-xmin" value="-3" />
+            </div>
+            <div>
+              <span class="label">x-max</span>
+              <input id="plot-xmax" value="3" />
+            </div>
+          </div>
+          <button id="plot-f-btn">Plot f(x) and shaded area from a to x</button>
+          <canvas id="plot-f-canvas" width="500" height="260"></canvas>
+          <div class="axis-label">Green: f(x) · Cyan: area region</div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">F(x) Curve</div>
+          <div class="card-tag">interactive</div>
+        </div>
+        <div class="card-body">
+          <button id="plot-F-btn">Plot F(x) = ∫ₐˣ f(t) dt</button>
+          <canvas id="plot-F-canvas" width="500" height="260"></canvas>
+          <div class="axis-label">Yellow: F(x)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EVALUATION VIA ANTIDERIVATIVE -->
+  <div class="section-sep"></div>
+  <h2>Evaluation via Antiderivatives</h2>
+  <div class="grid">
+    <div>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Standard Examples</div>
+          <div class="card-tag">theory</div>
+        </div>
+        <div class="card-body">
+          <div class="terminal-block">
+            <pre>
+∫₀^π sin x dx = [−cos x]₀^π = (−cos π) − (−cos 0) = 2
+∫₀¹ x² dx = [x³/3]₀¹ = 1/3
+∫₁^e 1/x dx = [ln x]₁^e = 1</pre>
+          </div>
+          <p>We use an antiderivative F and compute F(b) − F(a).</p>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Interactive Evaluator</div>
+          <div class="card-tag">interactive</div>
+        </div>
+        <div class="card-body">
+          <p class="label">Choose a standard integrand</p>
+          <select id="eval-select">
+            <option value="x^n">x^n</option>
+            <option value="sin">sin x</option>
+            <option value="cos">cos x</option>
+            <option value="exp">e^x</option>
+            <option value="1/x">1/x</option>
+          </select>
+          <div class="row" style="margin-top:8px;">
+            <div>
+              <span class="label">n (for x^n)</span>
+              <input id="eval-n" value="2" />
+            </div>
+            <div>
+              <span class="label">a</span>
+              <input id="eval-a" value="0" />
+            </div>
+            <div>
+              <span class="label">b</span>
+              <input id="eval-b" value="1" />
+            </div>
+          </div>
+          <button id="eval-btn">Compute ∫ₐᵇ f(x) dx via F(b) − F(a)</button>
+          <div id="eval-output" class="output"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SUMMARY TABLE -->
+  <div class="section-sep"></div>
+  <h2>Summary: Fundamental Theorem of Calculus</h2>
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">Key Statements</div>
+      <div class="card-tag">reference</div>
+    </div>
+    <div class="card-body">
+      <table>
+        <thead>
+          <tr><th>Result</th><th>Statement</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>FTC I</td><td>F(x) = ∫ₐˣ f(t) dt ⇒ F'(x) = f(x)</td></tr>
+          <tr><td>FTC II</td><td>F'(x) = f(x) ⇒ ∫ₐᵇ f(x) dx = F(b) − F(a)</td></tr>
+          <tr><td>Variable limits</td><td>G(x) = ∫_{α(x)}^{β(x)} f(t) dt ⇒ G'(x) = f(β(x))β'(x) − f(α(x))α'(x)</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- EXERCISES -->
+  <div class="section-sep"></div>
+  <h2>Exercises (Interactive Hints)</h2>
+
+  <div class="exercise">
+    <div class="exercise-title">Exercise 1 – F'(x) = f(x)</div>
+    <p>Take f(t) = cos t, a = 0. Define F(x) = ∫₀ˣ cos t dt. Check numerically that F'(x) ≈ cos x.</p>
+    <button class="hint-btn" data-hint="hint1">Show hint</button>
+    <div id="hint1" class="hint">
+      Exact F(x) = sin x, so F'(x) = cos x.
+    </div>
+  </div>
+
+  <div class="exercise">
+    <div class="exercise-title">Exercise 2 – Evaluate via Antiderivative</div>
+    <p>Compute ∫₀¹ x³ dx using the evaluator and compare with 1/4.</p>
+    <button class="hint-btn" data-hint="hint2">Show hint</button>
+    <div id="hint2" class="hint">
+      F(x) = x⁴/4, so ∫₀¹ x³ dx = 1/4.
+    </div>
+  </div>
+
+  <div class="exercise">
+    <div class="exercise-title">Exercise 3 – Variable Limits</div>
+    <p>Let G(x) = ∫₀ˣ² sin t dt. Use the rule for variable limits to find G'(x).</p>
+    <button class="hint-btn" data-hint="hint3">Show hint</button>
+    <div id="hint3" class="hint">
+      Here α(x)=0, β(x)=x² ⇒ G'(x)=sin(x²)·2x.
+    </div>
+  </div>
+</div>
+
+<script>
+  // --- Variable-safe function builder (Option C) ---
+  function buildSafeFunction(expr, variableName) {
+    let e = expr.replace(/\^/g, "**");
+    e = e.trim();
+
+    const funcs = ["sin","cos","tan","exp","log","sqrt","abs","asin","acos","atan"];
+    funcs.forEach(fn => {
+      e = e.replace(new RegExp("Math\\." + fn + "\\(", "g"), "__MATH__" + fn + "(");
+    });
+    funcs.forEach(fn => {
+      e = e.replace(new RegExp("\\b" + fn + "\\(", "g"), "Math." + fn + "(");
+    });
+    funcs.forEach(fn => {
+      e = e.replace(new RegExp("__MATH__" + fn + "\\(", "g"), "Math." + fn + "(");
+    });
+
+    const varList = ["x","t","u","v","y","z"];
+    varList.forEach(v => {
+      if (v !== variableName) {
+        e = e.replace(new RegExp("\\b" + v + "\\b", "g"), variableName);
+      }
+    });
+
+    return new Function(variableName, "return " + e + ";");
+  }
+
+  function numericIntegral(f, a, b, N) {
+    if (N < 1) N = 1;
+    const h = (b - a) / N;
+    let sum = 0;
+    for (let i = 0; i <= N; i++) {
+      const x = a + i * h;
+      const w = (i === 0 || i === N) ? 0.5 : 1;
+      sum += w * f(x);
+    }
+    return sum * h;
+  }
+
+  function drawAxes(ctx, canvas, xmin, xmax, ymin, ymax) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "#050608";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.strokeStyle = "#1a2a1a";
+    ctx.lineWidth = 1;
+
+    const gridCount = 10;
+    for (let i = 0; i <= gridCount; i++) {
+      const t = i / gridCount;
+      const x = t * canvas.width;
+      const y = t * canvas.height;
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, canvas.height);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(canvas.width, y);
+      ctx.stroke();
+    }
+
+    ctx.strokeStyle = "#00ff7f";
+    ctx.lineWidth = 1.2;
+
+    if (ymin < 0 && ymax > 0) {
+      const y0 = canvas.height * (1 - (0 - ymin) / (ymax - ymin));
+      ctx.beginPath();
+      ctx.moveTo(0, y0);
+      ctx.lineTo(canvas.width, y0);
+      ctx.stroke();
+    }
+
+    if (xmin < 0 && xmax > 0) {
+      const x0 = canvas.width * (0 - xmin) / (xmax - xmin);
+      ctx.beginPath();
+      ctx.moveTo(x0, 0);
+      ctx.lineTo(x0, canvas.height);
+      ctx.stroke();
+    }
+  }
+
+  // --- F(x) = ∫_a^x f(t) dt explorer ---
+  const fxExpr = document.getElementById("fx-expr");
+  const fxA = document.getElementById("fx-a");
+  const fxX = document.getElementById("fx-x");
+  const fxBtn = document.getElementById("fx-btn");
+  const fxOutput = document.getElementById("fx-output");
+
+  fxBtn.addEventListener("click", () => {
+    fxOutput.classList.remove("error");
+    try {
+      const expr = fxExpr.value;
+      const f = buildSafeFunction(expr, "t");
+      const a = parseFloat(fxA.value);
+      const x = parseFloat(fxX.value);
+      if (!isFinite(a) || !isFinite(x)) throw new Error("a and x must be numbers");
+      const N = 400;
+      const val = numericIntegral(f, a, x, N);
+      fxOutput.textContent =
+        "f(t) = " + expr +
+        "\nF(x) = ∫_" + a + "^" + x + " f(t) dt" +
+        "\nF(" + x + ") ≈ " + val;
+    } catch (err) {
+      fxOutput.textContent = "Error: " + err.message;
+      fxOutput.classList.add("error");
+    }
+  });
+
+  // --- Derivative checker ---
+  const dfX0 = document.getElementById("df-x0");
+  const dfH = document.getElementById("df-h");
+  const dfBtn = document.getElementById("df-btn");
+  const dfOutput = document.getElementById("df-output");
+
+  dfBtn.addEventListener("click", () => {
+    dfOutput.classList.remove("error");
+    try {
+      const expr = fxExpr.value;
+      const f = buildSafeFunction(expr, "t");
+      const a = parseFloat(fxA.value);
+      const x0 = parseFloat(dfX0.value);
+      const h = parseFloat(dfH.value);
+      if (!isFinite(a) || !isFinite(x0) || !isFinite(h) || h <= 0) throw new Error("Invalid a, x₀, or h");
+
+      function F(x) {
+        return numericIntegral(f, a, x, 400);
+      }
+      const dApprox = (F(x0 + h) - F(x0 - h)) / (2*h);
+      const fx0 = f(x0);
+
+      dfOutput.textContent =
+        "Approximate F'(x₀) via symmetric difference:\n" +
+        "F'(x₀) ≈ " + dApprox + "\n" +
+        "f(x₀) = " + fx0 + "\n" +
+        "Difference ≈ " + (dApprox - fx0);
+    } catch (err) {
+      dfOutput.textContent = "Error: " + err.message;
+      dfOutput.classList.add("error");
+    }
+  });
+
+  // --- Graphs f and F ---
+  const plotXmin = document.getElementById("plot-xmin");
+  const plotXmax = document.getElementById("plot-xmax");
+  const plotFBtn = document.getElementById("plot-f-btn");
+  const plotFCanvas = document.getElementById("plot-f-canvas");
+  const plotFCtx = plotFCanvas.getContext("2d");
+  const plotFBtn2 = document.getElementById("plot-F-btn");
+  const plotFCanvas2 = document.getElementById("plot-F-canvas");
+  const plotFCtx2 = plotFCanvas2.getContext("2d");
+
+  plotFBtn.addEventListener("click", () => {
+    try {
+      const expr = fxExpr.value;
+      const f = buildSafeFunction(expr, "x");
+      const a = parseFloat(fxA.value);
+      const xmin = parseFloat(plotXmin.value);
+      const xmax = parseFloat(plotXmax.value);
+      if (!isFinite(a) || !isFinite(xmin) || !isFinite(xmax) || xmin >= xmax) throw new Error("Invalid range or a");
+
+      const N = 400;
+      const xs = [];
+      const ys = [];
+      for (let i = 0; i < N; i++) {
+        const t = i / (N - 1);
+        const x = xmin + t * (xmax - xmin);
+        xs.push(x);
+        let y;
+        try { y = f(x); } catch { y = NaN; }
+        ys.push(isFinite(y) ? y : NaN);
+      }
+      const finite = ys.filter(v => isFinite(v));
+      if (!finite.length) throw new Error("No finite values to plot");
+      let ymin = Math.min(...finite, 0), ymax = Math.max(...finite, 0);
+      if (ymin === ymax) { ymin -= 1; ymax += 1; }
+
+      drawAxes(plotFCtx, plotFCanvas, xmin, xmax, ymin, ymax);
+
+      // plot f
+      plotFCtx.strokeStyle = "#00ff7f";
+      plotFCtx.lineWidth = 1.4;
+      plotFCtx.beginPath();
+      let started = false;
+      for (let i = 0; i < xs.length; i++) {
+        const x = xs[i];
+        const y = ys[i];
+        if (!isFinite(y)) { started = false; continue; }
+        const px = (x - xmin)/(xmax - xmin)*plotFCanvas.width;
+        const py = (1 - (y - ymin)/(ymax - ymin))*plotFCanvas.height;
+        if (!started) { plotFCtx.moveTo(px, py); started = true; }
+        else plotFCtx.lineTo(px, py);
+      }
+      plotFCtx.stroke();
+
+      // shade area from a to x1
+      const x1 = parseFloat(fxX.value);
+      if (isFinite(x1)) {
+        const left = Math.max(xmin, Math.min(a, x1));
+        const right = Math.min(xmax, Math.max(a, x1));
+        const M = 200;
+        const yAxis = (1 - (0 - ymin)/(ymax - ymin))*plotFCanvas.height;
+        plotFCtx.fillStyle = "rgba(0,255,255,0.25)";
+        plotFCtx.beginPath();
+        for (let i = 0; i <= M; i++) {
+          const t = i / M;
+          const x = left + t * (right - left);
+          let y;
+          try { y = f(x); } catch { y = NaN; }
+          if (!isFinite(y)) continue;
+          const px = (x - xmin)/(xmax - xmin)*plotFCanvas.width;
+          const py = (1 - (y - ymin)/(ymax - ymin))*plotFCanvas.height;
+          if (i === 0) {
+            plotFCtx.moveTo(px, yAxis);
+            plotFCtx.lineTo(px, py);
+          } else {
+            plotFCtx.lineTo(px, py);
+          }
+        }
+        const pxEnd = (right - xmin)/(xmax - xmin)*plotFCanvas.width;
+        plotFCtx.lineTo(pxEnd, yAxis);
+        plotFCtx.closePath();
+        plotFCtx.fill();
+      }
+    } catch (err) {
+      plotFCtx.clearRect(0, 0, plotFCanvas.width, plotFCanvas.height);
+      plotFCtx.fillStyle = "#050608";
+      plotFCtx.fillRect(0, 0, plotFCanvas.width, plotFCanvas.height);
+      plotFCtx.fillStyle = "#ff4d4d";
+      plotFCtx.font = "12px " + getComputedStyle(document.body).fontFamily;
+      plotFCtx.fillText("Error: " + err.message, 10, 20);
+    }
+  });
+
+  plotFBtn2.addEventListener("click", () => {
+    try {
+      const expr = fxExpr.value;
+      const f = buildSafeFunction(expr, "t");
+      const a = parseFloat(fxA.value);
+      const xmin = parseFloat(plotXmin.value);
+      const xmax = parseFloat(plotXmax.value);
+      if (!isFinite(a) || !isFinite(xmin) || !isFinite(xmax) || xmin >= xmax) throw new Error("Invalid range or a");
+
+      const N = 200;
+      const xs = [];
+      const Fs = [];
+      let ymin = Infinity, ymax = -Infinity;
+      for (let i = 0; i < N; i++) {
+        const t = i / (N - 1);
+        const x = xmin + t * (xmax - xmin);
+        xs.push(x);
+        let val;
+        try { val = numericIntegral(f, a, x, 300); } catch { val = NaN; }
+        Fs.push(isFinite(val) ? val : NaN);
+        if (isFinite(val)) {
+          if (val < ymin) ymin = val;
+          if (val > ymax) ymax = val;
+        }
+      }
+      if (!isFinite(ymin) || !isFinite(ymax)) throw new Error("No finite values to plot");
+      if (ymin === ymax) { ymin -= 1; ymax += 1; }
+
+      drawAxes(plotFCtx2, plotFCanvas2, xmin, xmax, ymin, ymax);
+
+      plotFCtx2.strokeStyle = "#ffff66";
+      plotFCtx2.lineWidth = 1.4;
+      plotFCtx2.beginPath();
+      let started = false;
+      for (let i = 0; i < xs.length; i++) {
+        const x = xs[i];
+        const y = Fs[i];
+        if (!isFinite(y)) { started = false; continue; }
+        const px = (x - xmin)/(xmax - xmin)*plotFCanvas2.width;
+        const py = (1 - (y - ymin)/(ymax - ymin))*plotFCanvas2.height;
+        if (!started) { plotFCtx2.moveTo(px, py); started = true; }
+        else plotFCtx2.lineTo(px, py);
+      }
+      plotFCtx2.stroke();
+    } catch (err) {
+      plotFCtx2.clearRect(0, 0, plotFCanvas2.width, plotFCanvas2.height);
+      plotFCtx2.fillStyle = "#050608";
+      plotFCtx2.fillRect(0, 0, plotFCanvas2.width, plotFCanvas2.height);
+      plotFCtx2.fillStyle = "#ff4d4d";
+      plotFCtx2.font = "12px " + getComputedStyle(document.body).fontFamily;
+      plotFCtx2.fillText("Error: " + err.message, 10, 20);
+    }
+  });
+
+  // --- Evaluator via antiderivative ---
+  const evalSelect = document.getElementById("eval-select");
+  const evalN = document.getElementById("eval-n");
+  const evalA = document.getElementById("eval-a");
+  const evalB = document.getElementById("eval-b");
+  const evalBtn = document.getElementById("eval-btn");
+  const evalOutput = document.getElementById("eval-output");
+
+  evalBtn.addEventListener("click", () => {
+    evalOutput.classList.remove("error");
+    try {
+      const kind = evalSelect.value;
+      const n = parseFloat(evalN.value);
+      const a = parseFloat(evalA.value);
+      const b = parseFloat(evalB.value);
+      if (!isFinite(a) || !isFinite(b)) throw new Error("a and b must be numbers");
+      let result = "";
+      if (kind === "x^n") {
+        if (!isFinite(n)) throw new Error("n must be a number");
+        if (Math.abs(n + 1) < 1e-12) {
+          result = "∫ x^(-1) dx = ln|x| + C, so ∫ₐᵇ x^(-1) dx = ln|b| − ln|a|.";
+        } else {
+          const F = x => Math.pow(x, n+1)/(n+1);
+          result = "∫ₐᵇ x^" + n + " dx = [x^" + (n+1) + "/(" + (n+1) + ")]ₐᵇ\n" +
+                   "≈ " + (F(b) - F(a));
+        }
+      } else if (kind === "sin") {
+        const F = x => -Math.cos(x);
+        result = "∫ₐᵇ sin x dx = [−cos x]ₐᵇ ≈ " + (F(b) - F(a));
+      } else if (kind === "cos") {
+        const F = x => Math.sin(x);
+        result = "∫ₐᵇ cos x dx = [sin x]ₐᵇ ≈ " + (F(b) - F(a));
+      } else if (kind === "exp") {
+        const F = x => Math.exp(x);
+        result = "∫ₐᵇ e^x dx = [e^x]ₐᵇ ≈ " + (F(b) - F(a));
+      } else if (kind === "1/x") {
+        const F = x => Math.log(Math.abs(x));
+        result = "∫ₐᵇ 1/x dx = [ln|x|]ₐᵇ ≈ " + (F(b) - F(a));
+      } else {
+        result = "Not implemented.";
+      }
+      evalOutput.textContent = result;
+    } catch (err) {
+      evalOutput.textContent = "Error: " + err.message;
+      evalOutput.classList.add("error");
+    }
+  });
+
+  // Hints
+  document.querySelectorAll(".hint-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const id = btn.getAttribute("data-hint");
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.style.display = el.style.display === "block" ? "none" : "block";
+    });
+  });
+
+  // Initial runs
+  fxBtn.click();
+  dfBtn.click();
+  plotFBtn.click();
+  plotFBtn2.click();
+  evalBtn.click();
+</script>
+</body>
+</html>

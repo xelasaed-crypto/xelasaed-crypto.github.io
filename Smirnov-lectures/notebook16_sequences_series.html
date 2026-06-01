@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Notebook 16 – Sequences & Series (Terminal Style)</title>
+<style>
+  :root {
+    --bg: #050608;
+    --bg-alt: #0b0f14;
+    --accent: #00ff7f;
+    --accent-soft: #00ff7f33;
+    --text: #e5ffe5;
+    --muted: #7fbf7f;
+    --danger: #ff4d4d;
+    --border: #1a2a1a;
+    --font-mono: "Fira Code", "JetBrains Mono", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 0;
+    background: radial-gradient(circle at top, #101820 0, #050608 55%);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 14px;
+  }
+  .scanline {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0.15),
+      rgba(0, 0, 0, 0.15) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+    mix-blend-mode: soft-light;
+    opacity: 0.4;
+    z-index: 999;
+  }
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 20px 16px 60px;
+  }
+  .header {
+    border: 1px solid var(--border);
+    background: linear-gradient(135deg, #050608 0, #0b0f14 60%, #050608 100%);
+    padding: 16px 18px;
+    margin-bottom: 18px;
+    box-shadow: 0 0 18px #00ff7f22;
+  }
+  .header-title {
+    color: var(--accent);
+    font-size: 20px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  .header-sub {
+    color: var(--muted);
+    margin-top: 4px;
+  }
+  .badge {
+    display: inline-block;
+    border: 1px solid var(--accent-soft);
+    color: var(--accent);
+    padding: 2px 8px;
+    margin-top: 8px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: minmax(0, 2.1fr) minmax(0, 1.4fr);
+    gap: 16px;
+  }
+  @media (max-width: 900px) {
+    .grid { grid-template-columns: 1fr; }
+  }
+  .card {
+    border: 1px solid var(--border);
+    background: radial-gradient(circle at top left, #101820 0, #050608 55%);
+    padding: 14px 14px 16px;
+    position: relative;
+    overflow: hidden;
+  }
+  .card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, transparent 0, #00ff7f11 40%, transparent 100%);
+    opacity: 0.4;
+    pointer-events: none;
+  }
+  .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  .card-title {
+    color: var(--accent);
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+  }
+  .card-tag {
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .card-body {
+    position: relative;
+    z-index: 1;
+  }
+  h2 {
+    color: var(--accent);
+    font-size: 15px;
+    margin: 18px 0 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+  }
+  p {
+    margin: 6px 0;
+    color: var(--text);
+  }
+  .quote {
+    border-left: 2px solid var(--accent-soft);
+    padding-left: 10px;
+    margin: 8px 0;
+    color: var(--muted);
+    font-size: 13px;
+  }
+  .terminal-block {
+    background: #050608;
+    border: 1px solid var(--border);
+    padding: 8px 10px;
+    font-size: 12px;
+    overflow-x: auto;
+    position: relative;
+  }
+  .terminal-block::before {
+    content: ">>> ";
+    color: var(--accent);
+    position: absolute;
+    left: 8px;
+    top: 6px;
+  }
+  .terminal-block pre {
+    margin: 0;
+    padding-left: 26px;
+    white-space: pre;
+  }
+  .label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+  input, select {
+    background: #050608;
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 4px 6px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    width: 100%;
+  }
+  input:focus, select:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent-soft);
+  }
+  button {
+    background: #050608;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    padding: 4px 10px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    cursor: pointer;
+  }
+  button:hover {
+    background: var(--accent-soft);
+  }
+  button:active {
+    transform: translateY(1px);
+  }
+  .row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+  .row > * { flex: 1; }
+  .output {
+    font-size: 13px;
+    color: var(--accent);
+    margin-top: 4px;
+    min-height: 18px;
+    white-space: pre-wrap;
+  }
+  .output.error {
+    color: var(--danger);
+  }
+  canvas {
+    width: 100%;
+    height: 260px;
+    background: #050608;
+    border: 1px solid var(--border);
+  }
+  .axis-label {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+  .section-sep {
+    margin: 22px 0 10px;
+    border-top: 1px dashed var(--border);
+  }
+  .exercise {
+    border: 1px dashed var(--border);
+    padding: 8px 10px;
+    margin: 6px 0;
+    background: #050608;
+  }
+  .exercise-title {
+    color: var(--accent);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    margin-bottom: 4px;
+  }
+  .hint-btn {
+    border-color: var(--border);
+    color: var(--muted);
+    font-size: 10px;
+    padding: 2px 6px;
+  }
+  .hint {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 4px;
+    display: none;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    margin-top: 6px;
+  }
+  th, td {
+    border: 1px solid var(--border);
+    padding: 3px 4px;
+    text-align: left;
+  }
+  th {
+    background: #0b0f14;
+    color: var(--muted);
+  }
+</style>
+</head>
+<body>
+<div class="scanline"></div>
+<div class="container">
+  <div class="header">
+    <div class="header-title">Notebook 16 :: Sequences & Series</div>
+    <div class="header-sub">Limits · Convergence · Series · Tests · Partial Sum Plots</div>
+    <div class="badge">Mode: Offline · HTML/JS · Terminal/Hacker Theme</div>
+  </div>
+
+  <div class="grid">
+    <!-- THEORY COLUMN -->
+    <div>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Sequences</div>
+          <div class="card-tag">theory</div>
+        </div>
+        <div class="card-body">
+          <p>A sequence (aₙ) is a function n ↦ aₙ defined on ℕ.</p>
+          <div class="terminal-block">
+            <pre>
+Limit: aₙ → L  ⇔  for every ε &gt; 0, ∃N s.t. n ≥ N ⇒ |aₙ − L| &lt; ε.</pre>
+          </div>
+          <p>We study monotonicity, boundedness, and convergence.</p>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:14px;">
+        <div class="card-header">
+          <div class="card-title">Series</div>
+          <div class="card-tag">theory</div>
+        </div>
+        <div class="card-body">
+          <p>Given (aₙ), the series ∑ aₙ is defined via partial sums</p>
+          <div class="terminal-block">
+            <pre>
+Sₙ = a₁ + a₂ + … + aₙ</pre>
+          </div>
+          <p>If Sₙ → S as n → ∞, the series converges to S; otherwise it diverges.</p>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:14px;">
+        <div class="card-header">
+          <div class="card-title">Basic Series Types</div>
+          <div class="card-tag">theory</div>
+        </div>
+        <div class="card-body">
+          <div class="terminal-block">
+            <pre>
+Geometric: ∑ rⁿ converges ⇔ |r| &lt; 1, sum = 1/(1−r)
+Harmonic: ∑ 1/n diverges
+p-series: ∑ 1/n^p converges ⇔ p &gt; 1</pre>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- INTERACTIVE COLUMN -->
+    <div>
+      <!-- SEQUENCE EXPLORER -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Sequence Explorer</div>
+          <div class="card-tag">interactive</div>
+        </div>
+        <div class="card-body">
+          <p class="label">aₙ (you may use n)</p>
+          <input id="seq-expr" value="1/n" />
+          <div class="row" style="margin-top:8px;">
+            <div>
+              <span class="label">n-min</span>
+              <input id="seq-nmin" value="1" />
+            </div>
+            <div>
+              <span class="label">n-max</span>
+              <input id="seq-nmax" value="40" />
+            </div>
+          </div>
+          <button id="seq-btn">Compute and classify sequence</button>
+          <div id="seq-output" class="output"></div>
+        </div>
+      </div>
+
+      <!-- SERIES EXPLORER -->
+      <div class="card" style="margin-top:14px;">
+        <div class="card-header">
+          <div class="card-title">Series Explorer</div>
+          <div class="card-tag">interactive</div>
+        </div>
+        <div class="card-body">
+          <p class="label">aₙ (term of series)</p>
+          <input id="series-expr" value="1/n^2" />
+          <div class="row" style="margin-top:8px;">
+            <div>
+              <span class="label">N (max partial sum index)</span>
+              <input id="series-N" value="50" />
+            </div>
+          </div>
+          <button id="series-btn">Compute partial sums Sₙ</button>
+          <div id="series-output" class="output"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PLOTS: SEQUENCE & PARTIAL SUMS -->
+  <div class="section-sep"></div>
+  <h2>Plots: Sequence aₙ and Partial Sums Sₙ</h2>
+  <div class="grid">
+    <div>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Sequence Plot</div>
+          <div class="card-tag">interactive</div>
+        </div>
+        <div class="card-body">
+          <canvas id="seq-canvas" width="500" height="260"></canvas>
+          <div class="axis-label">Green dots: aₙ vs n</div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Partial Sum Plot</div>
+          <div class="card-tag">interactive</div>
+        </div>
+        <div class="card-body">
+          <canvas id="series-canvas" width="500" height="260"></canvas>
+          <div class="axis-label">Yellow dots: Sₙ vs n</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONVERGENCE TESTS -->
+  <div class="section-sep"></div>
+  <h2>Convergence Tests</h2>
+  <div class="grid">
+    <div>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Ratio & Root Tests</div>
+          <div class="card-tag">interactive</div>
+        </div>
+        <div class="card-body">
+          <p class="label">aₙ</p>
+          <input id="test-expr" value="1/n" />
+          <div class="row" style="margin-top:8px;">
+            <div>
+              <span class="label">n-start</span>
+              <input id="test-nstart" value="5" />
+            </div>
+            <div>
+              <span class="label">n-end</span>
+              <input id="test-nend" value="20" />
+            </div>
+          </div>
+          <button id="test-btn">Compute ratio and root tests</button>
+          <div id="test-output" class="output"></div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Alternating Series Test</div>
+          <div class="card-tag">interactive</div>
+        </div>
+        <div class="card-body">
+          <p class="label">bₙ (positive terms), series ∑ (−1)ⁿ bₙ</p>
+          <input id="alt-expr" value="1/n" />
+          <div class="row" style="margin-top:8px;">
+            <div>
+              <span class="label">N (max index)</span>
+              <input id="alt-N" value="40" />
+            </div>
+          </div>
+          <button id="alt-btn">Check alternating series conditions</button>
+          <div id="alt-output" class="output"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SUMMARY TABLE -->
+  <div class="section-sep"></div>
+  <h2>Summary: Main Convergence Tests</h2>
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">Key Tests</div>
+      <div class="card-tag">reference</div>
+    </div>
+    <div class="card-body">
+      <table>
+        <thead>
+          <tr><th>Test</th><th>Condition</th><th>Conclusion</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Ratio</td>
+            <td>L = lim |aₙ₊₁/aₙ|</td>
+            <td>L &lt; 1 ⇒ convergent; L &gt; 1 ⇒ divergent; L = 1 ⇒ inconclusive</td>
+          </tr>
+          <tr>
+            <td>Root</td>
+            <td>L = lim √[n]{|aₙ|}</td>
+            <td>L &lt; 1 ⇒ convergent; L &gt; 1 ⇒ divergent; L = 1 ⇒ inconclusive</td>
+          </tr>
+          <tr>
+            <td>Alternating</td>
+            <td>bₙ decreasing, bₙ → 0</td>
+            <td>∑ (−1)ⁿ bₙ convergent</td>
+          </tr>
+          <tr>
+            <td>p-series</td>
+            <td>∑ 1/n^p</td>
+            <td>Convergent ⇔ p &gt; 1</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- EXERCISES -->
+  <div class="section-sep"></div>
+  <h2>Exercises (Interactive Hints)</h2>
+
+  <div class="exercise">
+    <div class="exercise-title">Exercise 1 – Harmonic vs p-series</div>
+    <p>Compare ∑ 1/n and ∑ 1/n² using the series explorer and partial sum plot.</p>
+    <button class="hint-btn" data-hint="hint1">Show hint</button>
+    <div id="hint1" class="hint">
+      Harmonic diverges slowly; 1/n² converges quickly to π²/6.
+    </div>
+  </div>
+
+  <div class="exercise">
+    <div class="exercise-title">Exercise 2 – Ratio Test</div>
+    <p>Use the ratio test on aₙ = 1/n! and aₙ = 1/n.</p>
+    <button class="hint-btn" data-hint="hint2">Show hint</button>
+    <div id="hint2" class="hint">
+      For 1/n!, ratio → 0 (convergent). For 1/n, ratio → 1 (inconclusive).
+    </div>
+  </div>
+
+  <div class="exercise">
+    <div class="exercise-title">Exercise 3 – Alternating Harmonic</div>
+    <p>Use the alternating test on bₙ = 1/n and see convergence of ∑ (−1)ⁿ/n.</p>
+    <button class="hint-btn" data-hint="hint3">Show hint</button>
+    <div id="hint3" class="hint">
+      bₙ decreases to 0, so the alternating harmonic series converges (conditionally).
+    </div>
+  </div>
+</div>
+
+<script>
+  // --- Variable-safe function builder for n ---
+  function buildSafeFunctionN(expr) {
+    let e = expr.replace(/\^/g, "**");
+    e = e.trim();
+
+    const funcs = ["sin","cos","tan","exp","log","sqrt","abs","asin","acos","atan"];
+    funcs.forEach(fn => {
+      e = e.replace(new RegExp("Math\\." + fn + "\\(", "g"), "__MATH__" + fn + "(");
+    });
+    funcs.forEach(fn => {
+      e = e.replace(new RegExp("\\b" + fn + "\\(", "g"), "Math." + fn + "(");
+    });
+    funcs.forEach(fn => {
+      e = e.replace(new RegExp("__MATH__" + fn + "\\(", "g"), "Math." + fn + "(");
+    });
+
+    const varList = ["n","k","m","x","t"];
+    varList.forEach(v => {
+      if (v !== "n") {
+        e = e.replace(new RegExp("\\b" + v + "\\b", "g"), "n");
+      }
+    });
+
+    return new Function("n", "return " + e + ";");
+  }
+
+  function drawAxes(ctx, canvas, xmin, xmax, ymin, ymax) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "#050608";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.strokeStyle = "#1a2a1a";
+    ctx.lineWidth = 1;
+
+    const gridCount = 8;
+    for (let i = 0; i <= gridCount; i++) {
+      const t = i / gridCount;
+      const x = t * canvas.width;
+      const y = t * canvas.height;
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, canvas.height);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(canvas.width, y);
+      ctx.stroke();
+    }
+
+    ctx.strokeStyle = "#00ff7f";
+    ctx.lineWidth = 1.2;
+
+    if (ymin < 0 && ymax > 0) {
+      const y0 = canvas.height * (1 - (0 - ymin) / (ymax - ymin));
+      ctx.beginPath();
+      ctx.moveTo(0, y0);
+      ctx.lineTo(canvas.width, y0);
+      ctx.stroke();
+    }
+
+    if (xmin < 0 && xmax > 0) {
+      const x0 = canvas.width * (0 - xmin) / (xmax - xmin);
+      ctx.beginPath();
+      ctx.moveTo(x0, 0);
+      ctx.lineTo(x0, canvas.height);
+      ctx.stroke();
+    }
+  }
+
+  // --- Sequence Explorer ---
+  const seqExpr = document.getElementById("seq-expr");
+  const seqNmin = document.getElementById("seq-nmin");
+  const seqNmax = document.getElementById("seq-nmax");
+  const seqBtn = document.getElementById("seq-btn");
+  const seqOutput = document.getElementById("seq-output");
+  const seqCanvas = document.getElementById("seq-canvas");
+  const seqCtx = seqCanvas.getContext("2d");
+
+  seqBtn.addEventListener("click", () => {
+    seqOutput.classList.remove("error");
+    try {
+      const expr = seqExpr.value;
+      const f = buildSafeFunctionN(expr);
+      const nmin = parseInt(seqNmin.value, 10);
+      const nmax = parseInt(seqNmax.value, 10);
+      if (!Number.isFinite(nmin) || !Number.isFinite(nmax) || nmin < 1 || nmin >= nmax)
+        throw new Error("Invalid n-range");
+
+      const ns = [];
+      const as = [];
+      for (let n = nmin; n <= nmax; n++) {
+        let val;
+        try { val = f(n); } catch { val = NaN; }
+        ns.push(n);
+        as.push(val);
+      }
+      const finite = as.filter(v => Number.isFinite(v));
+      if (!finite.length) throw new Error("No finite values for aₙ");
+      let ymin = Math.min(...finite), ymax = Math.max(...finite);
+      if (ymin === ymax) { ymin -= 1; ymax += 1; }
+
+      // classification (very rough)
+      const tail = finite.slice(-5);
+      const last = tail[tail.length - 1];
+      const approxLimit = last;
+      const diffs = tail.map(v => Math.abs(v - approxLimit));
+      const maxDiff = Math.max(...diffs);
+      let classification = "Behavior unclear.";
+      if (Math.abs(approxLimit) < 1e-6 && maxDiff < 1e-2) {
+        classification = "Sequence appears to converge to 0.";
+      } else if (maxDiff < 1e-2) {
+        classification = "Sequence appears to converge to ≈ " + approxLimit + ".";
+      } else if (Math.abs(last) > 10 * Math.abs(finite[0])) {
+        classification = "Sequence seems to diverge in magnitude.";
+      }
+
+      seqOutput.textContent =
+        "aₙ = " + expr +
+        "\nComputed for n = " + nmin + " … " + nmax +
+        "\nLast values: " + tail.map(v => v.toFixed(4)).join(", ") +
+        "\n" + classification;
+
+      // plot
+      const xmin = nmin - 1, xmax = nmax + 1;
+      drawAxes(seqCtx, seqCanvas, xmin, xmax, ymin, ymax);
+      seqCtx.fillStyle = "#00ff7f";
+      for (let i = 0; i < ns.length; i++) {
+        const n = ns[i];
+        const y = as[i];
+        if (!Number.isFinite(y)) continue;
+        const px = (n - xmin)/(xmax - xmin)*seqCanvas.width;
+        const py = (1 - (y - ymin)/(ymax - ymin))*seqCanvas.height;
+        seqCtx.beginPath();
+        seqCtx.arc(px, py, 3, 0, 2*Math.PI);
+        seqCtx.fill();
+      }
+    } catch (err) {
+      seqOutput.textContent = "Error: " + err.message;
+      seqOutput.classList.add("error");
+      seqCtx.clearRect(0, 0, seqCanvas.width, seqCanvas.height);
+    }
+  });
+
+  // --- Series Explorer + Partial Sum Plot ---
+  const seriesExpr = document.getElementById("series-expr");
+  const seriesN = document.getElementById("series-N");
+  const seriesBtn = document.getElementById("series-btn");
+  const seriesOutput = document.getElementById("series-output");
+  const seriesCanvas = document.getElementById("series-canvas");
+  const seriesCtx = seriesCanvas.getContext("2d");
+
+  seriesBtn.addEventListener("click", () => {
+    seriesOutput.classList.remove("error");
+    try {
+      const expr = seriesExpr.value;
+      const f = buildSafeFunctionN(expr);
+      const N = parseInt(seriesN.value, 10);
+      if (!Number.isFinite(N) || N < 1) throw new Error("Invalid N");
+
+      const ns = [];
+      const as = [];
+      const Ss = [];
+      let S = 0;
+      for (let n = 1; n <= N; n++) {
+        let a;
+        try { a = f(n); } catch { a = NaN; }
+        ns.push(n);
+        as.push(a);
+        if (!Number.isFinite(a)) {
+          Ss.push(NaN);
+        } else {
+          S += a;
+          Ss.push(S);
+        }
+      }
+      const finiteS = Ss.filter(v => Number.isFinite(v));
+      if (!finiteS.length) throw new Error("No finite partial sums");
+      let ymin = Math.min(...finiteS), ymax = Math.max(...finiteS);
+      if (ymin === ymax) { ymin -= 1; ymax += 1; }
+
+      const tail = finiteS.slice(-5);
+      const last = tail[tail.length - 1];
+      const approxLimit = last;
+      const diffs = tail.map(v => Math.abs(v - approxLimit));
+      const maxDiff = Math.max(...diffs);
+      let classification = "Series behavior unclear.";
+      if (maxDiff < 1e-2) {
+        classification = "Series appears to converge to ≈ " + approxLimit + ".";
+      } else if (Math.abs(last) > 10 * Math.abs(finiteS[0])) {
+        classification = "Series seems to diverge in magnitude.";
+      }
+
+      seriesOutput.textContent =
+        "aₙ = " + expr +
+        "\nPartial sums Sₙ for n = 1 … " + N +
+        "\nLast Sₙ: " + tail.map(v => v.toFixed(4)).join(", ") +
+        "\n" + classification;
+
+      const xmin = 0, xmax = N + 1;
+      drawAxes(seriesCtx, seriesCanvas, xmin, xmax, ymin, ymax);
+      seriesCtx.fillStyle = "#ffff66";
+      for (let i = 0; i < ns.length; i++) {
+        const n = ns[i];
+        const Sval = Ss[i];
+        if (!Number.isFinite(Sval)) continue;
+        const px = (n - xmin)/(xmax - xmin)*seriesCanvas.width;
+        const py = (1 - (Sval - ymin)/(ymax - ymin))*seriesCanvas.height;
+        seriesCtx.beginPath();
+        seriesCtx.arc(px, py, 3, 0, 2*Math.PI);
+        seriesCtx.fill();
+      }
+    } catch (err) {
+      seriesOutput.textContent = "Error: " + err.message;
+      seriesOutput.classList.add("error");
+      seriesCtx.clearRect(0, 0, seriesCanvas.width, seriesCanvas.height);
+    }
+  });
+
+  // --- Ratio & Root Tests ---
+  const testExpr = document.getElementById("test-expr");
+  const testNstart = document.getElementById("test-nstart");
+  const testNend = document.getElementById("test-nend");
+  const testBtn = document.getElementById("test-btn");
+  const testOutput = document.getElementById("test-output");
+
+  testBtn.addEventListener("click", () => {
+    testOutput.classList.remove("error");
+    try {
+      const expr = testExpr.value;
+      const f = buildSafeFunctionN(expr);
+      const nstart = parseInt(testNstart.value, 10);
+      const nend = parseInt(testNend.value, 10);
+      if (!Number.isFinite(nstart) || !Number.isFinite(nend) || nstart < 1 || nstart >= nend)
+        throw new Error("Invalid n-range");
+
+      const ratios = [];
+      const roots = [];
+      for (let n = nstart; n <= nend; n++) {
+        const an = f(n);
+        const an1 = f(n+1);
+        if (an !== 0 && Number.isFinite(an) && Number.isFinite(an1)) {
+          ratios.push(Math.abs(an1/an));
+        }
+        if (Number.isFinite(an) && an !== 0) {
+          roots.push(Math.pow(Math.abs(an), 1/n));
+        }
+      }
+      if (!ratios.length || !roots.length) throw new Error("Cannot compute ratios/roots");
+
+      const Lratio = ratios[ratios.length - 1];
+      const Lroot = roots[roots.length - 1];
+
+      let conclRatio = "Ratio test inconclusive.";
+      if (Lratio < 0.9) conclRatio = "Ratio test suggests convergence (L ≈ " + Lratio.toFixed(4) + " &lt; 1).";
+      else if (Lratio > 1.1) conclRatio = "Ratio test suggests divergence (L ≈ " + Lratio.toFixed(4) + " &gt; 1).";
+
+      let conclRoot = "Root test inconclusive.";
+      if (Lroot < 0.9) conclRoot = "Root test suggests convergence (L ≈ " + Lroot.toFixed(4) + " &lt; 1).";
+      else if (Lroot > 1.1) conclRoot = "Root test suggests divergence (L ≈ " + Lroot.toFixed(4) + " &gt; 1).";
+
+      testOutput.textContent =
+        "aₙ = " + expr +
+        "\nApprox ratio L ≈ " + Lratio +
+        "\nApprox root  L ≈ " + Lroot +
+        "\n" + conclRatio +
+        "\n" + conclRoot;
+    } catch (err) {
+      testOutput.textContent = "Error: " + err.message;
+      testOutput.classList.add("error");
+    }
+  });
+
+  // --- Alternating Series Test ---
+  const altExpr = document.getElementById("alt-expr");
+  const altN = document.getElementById("alt-N");
+  const altBtn = document.getElementById("alt-btn");
+  const altOutput = document.getElementById("alt-output");
+
+  altBtn.addEventListener("click", () => {
+    altOutput.classList.remove("error");
+    try {
+      const expr = altExpr.value;
+      const f = buildSafeFunctionN(expr);
+      const N = parseInt(altN.value, 10);
+      if (!Number.isFinite(N) || N < 3) throw new Error("N must be ≥ 3");
+
+      const bs = [];
+      for (let n = 1; n <= N; n++) {
+        let val;
+        try { val = f(n); } catch { val = NaN; }
+        bs.push(val);
+      }
+      const finite = bs.filter(v => Number.isFinite(v));
+      if (!finite.length) throw new Error("No finite bₙ");
+
+      const decreasing = (() => {
+        for (let n = 1; n < N; n++) {
+          if (!(bs[n] <= bs[n-1] + 1e-8)) return false;
+        }
+        return true;
+      })();
+
+      const limitApprox = finite[finite.length - 1];
+
+      let text =
+        "bₙ = " + expr +
+        "\nLast values: " + finite.slice(-5).map(v => v.toFixed(4)).join(", ") +
+        "\nApprox limit of bₙ ≈ " + limitApprox + "\n";
+
+      if (decreasing && Math.abs(limitApprox) < 1e-3) {
+        text += "Conditions for alternating series test appear satisfied (decreasing, → 0). Series ∑ (−1)ⁿ bₙ likely convergent.";
+      } else {
+        text += "Conditions not clearly satisfied (may not be decreasing or may not tend to 0).";
+      }
+
+      altOutput.textContent = text;
+    } catch (err) {
+      altOutput.textContent = "Error: " + err.message;
+      altOutput.classList.add("error");
+    }
+  });
+
+  // Hints
+  document.querySelectorAll(".hint-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const id = btn.getAttribute("data-hint");
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.style.display = el.style.display === "block" ? "none" : "block";
+    });
+  });
+
+  // Initial runs
+  seqBtn.click();
+  seriesBtn.click();
+  testBtn.click();
+  altBtn.click();
+</script>
+</body>
+</html>

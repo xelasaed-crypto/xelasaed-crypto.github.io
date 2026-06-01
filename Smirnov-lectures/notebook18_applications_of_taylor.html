@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Notebook 18 – Applications of Taylor (Terminal Style)</title>
+<style>
+  :root {
+    --bg: #050608;
+    --bg-alt: #0b0f14;
+    --accent: #00ff7f;
+    --accent-soft: #00ff7f33;
+    --text: #e5ffe5;
+    --muted: #7fbf7f;
+    --danger: #ff4d4d;
+    --border: #1a2a1a;
+    --font-mono: "Fira Code", "JetBrains Mono", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 0;
+    background: radial-gradient(circle at top, #101820 0, #050608 55%);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 14px;
+  }
+  .scanline {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0.15),
+      rgba(0, 0, 0, 0.15) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+    mix-blend-mode: soft-light;
+    opacity: 0.4;
+    z-index: 999;
+  }
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 20px 16px 60px;
+  }
+  .header {
+    border: 1px solid var(--border);
+    background: linear-gradient(135deg, #050608 0, #0b0f14 60%, #050608 100%);
+    padding: 16px 18px;
+    margin-bottom: 18px;
+    box-shadow: 0 0 18px #00ff7f22;
+  }
+  .header-title {
+    color: var(--accent);
+    font-size: 20px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  .header-sub {
+    color: var(--muted);
+    margin-top: 4px;
+  }
+  .badge {
+    display: inline-block;
+    border: 1px solid var(--accent-soft);
+    color: var(--accent);
+    padding: 2px 8px;
+    margin-top: 8px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: minmax(0, 2.1fr) minmax(0, 1.4fr);
+    gap: 16px;
+  }
+  @media (max-width: 900px) {
+    .grid { grid-template-columns: 1fr; }
+  }
+  .card {
+    border: 1px solid var(--border);
+    background: radial-gradient(circle at top left, #101820 0, #050608 55%);
+    padding: 14px 14px 16px;
+    position: relative;
+    overflow: hidden;
+  }
+  .card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, transparent 0, #00ff7f11 40%, transparent 100%);
+    opacity: 0.4;
+    pointer-events: none;
+  }
+  .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  .card-title {
+    color: var(--accent);
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+  }
+  .card-tag {
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .card-body {
+    position: relative;
+    z-index: 1;
+  }
+  h2 {
+    color: var(--accent);
+    font-size: 15px;
+    margin: 18px 0 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+  }
+  p {
+    margin: 6px 0;
+    color: var(--text);
+  }
+  .quote {
+    border-left: 2px solid var(--accent-soft);
+    padding-left: 10px;
+    margin: 8px 0;
+    color: var(--muted);
+    font-size: 13px;
+  }
+  .terminal-block {
+    background: #050608;
+    border: 1px solid var(--border);
+    padding: 8px 10px;
+    font-size: 12px;
+    overflow-x: auto;
+    position: relative;
+  }
+  .terminal-block::before {
+    content: ">>> ";
+    color: var(--accent);
+    position: absolute;
+    left: 8px;
+    top: 6px;
+  }
+  .terminal-block pre {
+    margin: 0;
+    padding-left: 26px;
+    white-space: pre;
+  }
+  .label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+  input, select {
+    background: #050608;
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 4px 6px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    width: 100%;
+  }
+  input:focus, select:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent-soft);
+  }
+  button {
+    background: #050608;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    padding: 4px 10px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    cursor: pointer;
+  }
+  button:hover {
+    background: var(--accent-soft);
+  }
+  button:active {
+    transform: translateY(1px);
+  }
+  .row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+  .row > * { flex: 1; }
+  .output {
+    font-size: 13px;
+    color: var(--accent);
+    margin-top: 4px;
+    min-height: 18px;
+    white-space: pre-wrap;
+  }
+  .output.error {
+    color: var(--danger);
+  }
+  canvas {
+    width: 100%;
+    height: 260px;
+    background: #050608;
+    border: 1px solid var(--border);
+  }
+  .axis-label {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+  .section-sep {
+    margin: 22px 0 10px;
+    border-top: 1px dashed var(--border);
+  }
+  .exercise {
+    border: 1px dashed var(--border);
+    padding: 8px 10px;
+    margin: 6px 0;
+    background: #050608;
+  }
+  .exercise-title {
+    color: var(--accent);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    margin-bottom: 4px;
+  }
+  .hint-btn {
+    border-color: var(--border);
+    color: var(--muted);
+    font-size: 10px;
+    padding: 2px 6px;
+  }
+  .hint {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 4px;
+    display: none;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    margin-top: 6px;
+  }
+  th, td {
+    border: 1px solid var(--border);
+    padding: 3px 4px;
+    text-align: left;
+  }
+  th {
+    background: #0b0f14;
+    color: var(--muted);
+  }
+</style>
+</head>
+<body>
+<div class="scanline"></div>
+<div class="container">
+  <div class="header">
+    <div class="header-title">Notebook 18 :: Applications of Taylor</div>
+    <div class="header-sub">Limits · Asymptotics · Local Models · Error Bounds</div>
+    <div class="badge">Mode: Offline · HTML/JS · Terminal/Hacker Theme</div>
+  </div>
+
+  <div class="grid">
+    <!-- THEORY COLUMN -->
+    <div>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Taylor for Limits</div>
+          <div class="card-tag">theory</div>
+        </div>
+        <div class="card-body">
+          <p>Near a point a, replace f(x) by its Taylor polynomial to simplify limits.</p>
+          <div class="terminal-block">
+            <pre>
+Example:  lim_{x→0} (sin x)/x
+sin x = x − x³/3! + O(x⁵)
+⇒ (sin x)/x = 1 − x²/3! + O(x⁴) → 1</pre>
+          </div>
+          <p>This is “L’Hôpital by series”.</p>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:14px;">
+        <div class="card-header">
+          <div class-card="card-title">Asymptotic Expansions</div>
+          <div class="card-tag">theory</div>
+        </div>
+        <div class="card-body">
+          <p>We write f(x) ~ g(x) as x → a if f(x)/g(x) → 1.</p>
+          <div class="terminal-block">
+            <pre>
+sin x ~ x,   1 − cos x ~ x²/2,   ln(1+x) ~ x</pre>
+          </div>
+          <p>Taylor gives systematic asymptotics.</p>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:14px;">
+        <div class="card-header">
+          <div class="card-title">Remainder (Lagrange Form)</div>
+          <div class="card-tag">theory</div>
+        </div>
+        <div class="card-body">
+          <p>For f ∈ C^{N+1} near a,</p>
+          <div class="terminal-block">
+            <pre>
+f(x) = T_N(x) + R_N(x),
+R_N(x) = f^{(N+1)}(ξ)/(N+1)! · (x − a)^{N+1}</pre>
+          </div>
+          <p>for some ξ between a and x. This bounds the error.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- INTERACTIVE COLUMN -->
+    <div>
+      <!-- LIMIT VIA TAYLOR (PRESET PAIRS) -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Limit via Taylor (Presets)</div>
+          <div class="card-tag">interactive</div>
+        </div>
+        <div class="card-body">
+          <p class="label">Choose a limit</p>
+          <select id="limit-select">
+            <option value="sinx_over_x">lim_{x→0} sin x / x</option>
+            <option value="1cos_over_x2">lim_{x→0} (1 − cos x)/x²</option>
+            <option value="ln1x_over_x">lim_{x→0} ln(1+x)/x</option>
+            <option value="ex_minus1_over_x">lim_{x→0} (e^x − 1)/x</option>
+          </select>
+          <button id="limit-btn" style="margin-top:8px;">Show Taylor-based evaluation</button>
+          <div id="limit-output" class="output"></div>
+        </div>
+      </div>
+
+      <!-- NUMERIC TAYLOR ERROR (PRESETS) -->
+      <div class="card" style="margin-top:14px;">
+        <div class="card-header">
+          <div class="card-title">Numeric Taylor Error (Presets)</div>
+          <div class="card-tag">interactive</div>
+        </div>
+        <div class="card-body">
+          <p class="label">Function f(x)</p>
+          <select id="err-f">
+            <option value="exp">e^x at a = 0</option>
+            <option value="sin">sin x at a = 0</option>
+            <option value="cos">cos x at a = 0</option>
+            <option value="ln1x">ln(1+x) at a = 0</option>
+          </select>
+          <div class="row" style="margin-top:8px;">
+            <div>
+              <span class="label">Degree N</span>
+              <input id="err-N" value="3" />
+            </div>
+            <div>
+              <span class="label">x-test</span>
+              <input id="err-x" value="0.5" />
+            </div>
+          </div>
+          <button id="err-btn" style="margin-top:8px;">Compute T_N(x) and error</button>
+          <div id="err-output" class="output"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ERROR VS DEGREE PLOT -->
+  <div class="section-sep"></div>
+  <h2>Error vs Degree N (Fixed x)</h2>
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">Convergence of Taylor Approximation</div>
+      <div class="card-tag">interactive</div>
+    </div>
+    <div class="card-body">
+      <p class="label">Function and x</p>
+      <div class="row">
+        <div>
+          <select id="errplot-f">
+            <option value="exp">e^x at a = 0</option>
+            <option value="sin">sin x at a = 0</option>
+            <option value="cos">cos x at a = 0</option>
+            <option value="ln1x">ln(1+x) at a = 0</option>
+          </select>
+        </div>
+        <div>
+          <input id="errplot-x" value="0.8" />
+        </div>
+      </div>
+      <button id="errplot-btn" style="margin-top:8px;">Plot |f(x) − T_N(x)| vs N</button>
+      <canvas id="errplot-canvas" width="900" height="260"></canvas>
+      <div class="axis-label">Vertical: |error| (log scale-ish); Horizontal: N</div>
+    </div>
+  </div>
+
+  <!-- SUMMARY TABLE -->
+  <div class="section-sep"></div>
+  <h2>Summary: Applications of Taylor</h2>
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">Key Uses</div>
+      <div class="card-tag">reference</div>
+    </div>
+    <div class="card-body">
+      <table>
+        <thead>
+          <tr><th>Application</th><th>Idea</th><th>Example</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Limits</td>
+            <td>Replace functions by leading Taylor terms</td>
+            <td>(sin x)/x → 1</td>
+          </tr>
+          <tr>
+            <td>Asymptotics</td>
+            <td>Keep first nonzero term</td>
+            <td>1 − cos x ~ x²/2</td>
+          </tr>
+          <tr>
+            <td>Error bounds</td>
+            <td>Use Lagrange remainder</td>
+            <td>|R_N(x)| ≤ M|x−a|^{N+1}/(N+1)!</td>
+          </tr>
+          <tr>
+            <td>Numerics</td>
+            <td>Approximate f(x) by polynomial</td>
+            <td>e^x ≈ 1 + x + x²/2 + …</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- EXERCISES -->
+  <div class="section-sep"></div>
+  <h2>Exercises (Interactive Hints)</h2>
+
+  <div class="exercise">
+    <div class="exercise-title">Exercise 1 – Classic Limit</div>
+    <p>Use the limit panel to justify lim_{x→0} (1 − cos x)/x² = 1/2.</p>
+    <button class="hint-btn" data-hint="hint1">Show hint</button>
+    <div id="hint1" class="hint">
+      cos x = 1 − x²/2 + O(x⁴) ⇒ 1 − cos x = x²/2 + O(x⁴).
+    </div>
+  </div>
+
+  <div class="exercise">
+    <div class="exercise-title">Exercise 2 – ln(1+x)</div>
+    <p>Check ln(1+x) ≈ x − x²/2 for small x and see error vs N.</p>
+    <button class="hint-btn" data-hint="hint2">Show hint</button>
+    <div id="hint2" class="hint">
+      ln(1+x) = x − x²/2 + x³/3 − …; truncation error behaves like next term.
+    </div>
+  </div>
+
+  <div class="exercise">
+    <div class="exercise-title">Exercise 3 – Error Decay</div>
+    <p>Use the error-vs-N plot for e^x at x = 1 and watch how fast it drops.</p>
+    <button class="hint-btn" data-hint="hint3">Show hint</button>
+    <div id="hint3" class="hint">
+      For entire functions like e^x, Taylor converges for all x, with factorial in denominator.
+    </div>
+  </div>
+</div>
+
+<script>
+  // --- Factorial and basic f(x) ---
+  function factorial(n) {
+    let r = 1;
+    for (let k = 2; k <= n; k++) r *= k;
+    return r;
+  }
+
+  function fValue(name, x) {
+    if (name === "exp") return Math.exp(x);
+    if (name === "sin") return Math.sin(x);
+    if (name === "cos") return Math.cos(x);
+    if (name === "ln1x") return Math.log(1 + x);
+    return NaN;
+  }
+
+  // derivatives at 0 for presets
+  function taylorCoeff(name, n) {
+    if (name === "exp") {
+      return 1 / factorial(n); // e^x at 0
+    } else if (name === "sin") {
+      // sin x = x − x³/3! + x⁵/5! − ...
+      if (n % 2 === 0) return 0;
+      const k = (n - 1)/2;
+      return ((k % 2 === 0) ? 1 : -1) / factorial(n);
+    } else if (name === "cos") {
+      // cos x = 1 − x²/2! + x⁴/4! − ...
+      if (n % 2 === 1) return 0;
+      const k = n/2;
+      return ((k % 2 === 0) ? 1 : -1) / factorial(n);
+    } else if (name === "ln1x") {
+      // ln(1+x) = x − x²/2 + x³/3 − ...
+      if (n === 0) return 0;
+      const sign = (n % 2 === 1) ? 1 : -1;
+      return sign / n;
+    }
+    return 0;
+  }
+
+  function taylorPolyAt0(name, N, x) {
+    let s = 0;
+    for (let n = 0; n <= N; n++) {
+      s += taylorCoeff(name, n) * Math.pow(x, n);
+    }
+    return s;
+  }
+
+  // --- Drawing axes ---
+  function drawAxes(ctx, canvas, xmin, xmax, ymin, ymax) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "#050608";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.strokeStyle = "#1a2a1a";
+    ctx.lineWidth = 1;
+
+    const gridCount = 8;
+    for (let i = 0; i <= gridCount; i++) {
+      const t = i / gridCount;
+      const x = t * canvas.width;
+      const y = t * canvas.height;
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, canvas.height);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(canvas.width, y);
+      ctx.stroke();
+    }
+
+    ctx.strokeStyle = "#00ff7f";
+    ctx.lineWidth = 1.2;
+
+    if (ymin < 0 && ymax > 0) {
+      const y0 = canvas.height * (1 - (0 - ymin) / (ymax - ymin));
+      ctx.beginPath();
+      ctx.moveTo(0, y0);
+      ctx.lineTo(canvas.width, y0);
+      ctx.stroke();
+    }
+
+    if (xmin < 0 && xmax > 0) {
+      const x0 = canvas.width * (0 - xmin) / (xmax - xmin);
+      ctx.beginPath();
+      ctx.moveTo(x0, 0);
+      ctx.lineTo(x0, canvas.height);
+      ctx.stroke();
+    }
+  }
+
+  // --- Limit via Taylor (textual) ---
+  const limitSelect = document.getElementById("limit-select");
+  const limitBtn = document.getElementById("limit-btn");
+  const limitOutput = document.getElementById("limit-output");
+
+  limitBtn.addEventListener("click", () => {
+    const val = limitSelect.value;
+    let text = "";
+    if (val === "sinx_over_x") {
+      text =
+        "Limit: lim_{x→0} (sin x)/x\n" +
+        "Taylor: sin x = x − x³/3! + O(x⁵)\n" +
+        "⇒ (sin x)/x = 1 − x²/3! + O(x⁴) → 1.";
+    } else if (val === "1cos_over_x2") {
+      text =
+        "Limit: lim_{x→0} (1 − cos x)/x²\n" +
+        "Taylor: cos x = 1 − x²/2 + x⁴/4! + O(x⁶)\n" +
+        "⇒ 1 − cos x = x²/2 − x⁴/4! + O(x⁶)\n" +
+        "⇒ (1 − cos x)/x² = 1/2 − x²/4! + O(x⁴) → 1/2.";
+    } else if (val === "ln1x_over_x") {
+      text =
+        "Limit: lim_{x→0} ln(1+x)/x\n" +
+        "Taylor: ln(1+x) = x − x²/2 + x³/3 − …\n" +
+        "⇒ ln(1+x)/x = 1 − x/2 + x²/3 − … → 1.";
+    } else if (val === "ex_minus1_over_x") {
+      text =
+        "Limit: lim_{x→0} (e^x − 1)/x\n" +
+        "Taylor: e^x = 1 + x + x²/2! + …\n" +
+        "⇒ (e^x − 1)/x = 1 + x/2! + … → 1.";
+    }
+    limitOutput.classList.remove("error");
+    limitOutput.textContent = text;
+  });
+
+  // --- Numeric Taylor Error (single N, x) ---
+  const errF = document.getElementById("err-f");
+  const errN = document.getElementById("err-N");
+  const errX = document.getElementById("err-x");
+  const errBtn = document.getElementById("err-btn");
+  const errOutput = document.getElementById("err-output");
+
+  errBtn.addEventListener("click", () => {
+    errOutput.classList.remove("error");
+    try {
+      const fname = errF.value;
+      const N = parseInt(errN.value, 10);
+      const x = parseFloat(errX.value);
+      if (!Number.isFinite(N) || N < 0 || !Number.isFinite(x)) throw new Error("Invalid N or x");
+
+      const fx = fValue(fname, x);
+      const Tx = taylorPolyAt0(fname, N, x);
+      const err = fx - Tx;
+
+      errOutput.textContent =
+        "f(x) at x = " + x + " ≈ " + fx +
+        "\nT_" + N + "(x) ≈ " + Tx +
+        "\nError f(x) − T_N(x) ≈ " + err;
+    } catch (e) {
+      errOutput.textContent = "Error: " + e.message;
+      errOutput.classList.add("error");
+    }
+  });
+
+  // --- Error vs N plot ---
+  const errplotF = document.getElementById("errplot-f");
+  const errplotX = document.getElementById("errplot-x");
+  const errplotBtn = document.getElementById("errplot-btn");
+  const errplotCanvas = document.getElementById("errplot-canvas");
+  const errplotCtx = errplotCanvas.getContext("2d");
+
+  errplotBtn.addEventListener("click", () => {
+    try {
+      const fname = errplotF.value;
+      const x = parseFloat(errplotX.value);
+      if (!Number.isFinite(x)) throw new Error("Invalid x");
+
+      const maxN = 20;
+      const Ns = [];
+      const Es = [];
+      const fx = fValue(fname, x);
+      for (let N = 0; N <= maxN; N++) {
+        const Tx = taylorPolyAt0(fname, N, x);
+        const err = Math.abs(fx - Tx);
+        Ns.push(N);
+        Es.push(err);
+      }
+      const finite = Es.filter(v => Number.isFinite(v));
+      if (!finite.length) throw new Error("No finite errors");
+      let ymin = Math.min(...finite), ymax = Math.max(...finite);
+      if (ymin === ymax) { ymin /= 10; ymax *= 10; }
+      if (ymin <= 0) ymin = Math.min(1e-8, ymax/1000);
+
+      drawAxes(errplotCtx, errplotCanvas, 0, maxN, Math.log10(ymin), Math.log10(ymax));
+
+      errplotCtx.strokeStyle = "#ffff66";
+      errplotCtx.lineWidth = 1.4;
+      errplotCtx.beginPath();
+      for (let i = 0; i < Ns.length; i++) {
+        const N = Ns[i];
+        const E = Es[i];
+        if (!Number.isFinite(E) || E <= 0) continue;
+        const px = (N)/(maxN)*errplotCanvas.width;
+        const ly = Math.log10(E);
+        const py = (1 - (ly - Math.log10(ymin))/(Math.log10(ymax) - Math.log10(ymin)))*errplotCanvas.height;
+        if (i === 0) errplotCtx.moveTo(px, py); else errplotCtx.lineTo(px, py);
+      }
+      errplotCtx.stroke();
+    } catch (e) {
+      errplotCtx.clearRect(0, 0, errplotCanvas.width, errplotCanvas.height);
+    }
+  });
+
+  // Hints
+  document.querySelectorAll(".hint-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const id = btn.getAttribute("data-hint");
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.style.display = el.style.display === "block" ? "none" : "block";
+    });
+  });
+
+  // Initial runs
+  limitBtn.click();
+  errBtn.click();
+  errplotBtn.click();
+</script>
+</body>
+</html>
+

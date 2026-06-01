@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Notebook 6 – Higher Derivatives, Concavity & Inflection (Terminal Style)</title>
+<style>
+  :root {
+    --bg: #050608;
+    --bg-alt: #0b0f14;
+    --accent: #00ff7f;
+    --accent-soft: #00ff7f33;
+    --text: #e5ffe5;
+    --muted: #7fbf7f;
+    --danger: #ff4d4d;
+    --border: #1a2a1a;
+    --font-mono: "Fira Code", "JetBrains Mono", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 0;
+    background: radial-gradient(circle at top, #101820 0, #050608 55%);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 14px;
+  }
+  .scanline {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0.15),
+      rgba(0, 0, 0, 0.15) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+    mix-blend-mode: soft-light;
+    opacity: 0.4;
+    z-index: 999;
+  }
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 20px 16px 60px;
+  }
+  .header {
+    border: 1px solid var(--border);
+    background: linear-gradient(135deg, #050608 0, #0b0f14 60%, #050608 100%);
+    padding: 16px 18px;
+    margin-bottom: 18px;
+    box-shadow: 0 0 18px #00ff7f22;
+  }
+  .header-title {
+    color: var(--accent);
+    font-size: 20px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  .header-sub {
+    color: var(--muted);
+    margin-top: 4px;
+  }
+  .badge {
+    display: inline-block;
+    border: 1px solid var(--accent-soft);
+    color: var(--accent);
+    padding: 2px 8px;
+    margin-top: 8px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: minmax(0, 2.1fr) minmax(0, 1.4fr);
+    gap: 16px;
+  }
+  @media (max-width: 900px) {
+    .grid { grid-template-columns: 1fr; }
+  }
+  .card {
+    border: 1px solid var(--border);
+    background: radial-gradient(circle at top left, #101820 0, #050608 55%);
+    padding: 14px 14px 16px;
+    position: relative;
+    overflow: hidden;
+  }
+  .card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, transparent 0, #00ff7f11 40%, transparent 100%);
+    opacity: 0.4;
+    pointer-events: none;
+  }
+  .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  .card-title {
+    color: var(--accent);
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+  }
+  .card-tag {
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .card-body {
+    position: relative;
+    z-index: 1;
+  }
+  h2 {
+    color: var(--accent);
+    font-size: 15px;
+    margin: 18px 0 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+  }
+  p {
+    margin: 6px 0;
+    color: var(--text);
+  }
+  .quote {
+    border-left: 2px solid var(--accent-soft);
+    padding-left: 10px;
+    margin: 8px 0;
+    color: var(--muted);
+    font-size: 13px;
+  }
+  .inline-code {
+    background: #0b0f14;
+    border: 1px solid var(--border);
+    padding: 1px 4px;
+    border-radius: 2px;
+    font-size: 12px;
+  }
+  .terminal-block {
+    background: #050608;
+    border: 1px solid var(--border);
+    padding: 8px 10px;
+    font-size: 12px;
+    overflow-x: auto;
+    position: relative;
+  }
+  .terminal-block::before {
+    content: ">>> ";
+    color: var(--accent);
+    position: absolute;
+    left: 8px;
+    top: 6px;
+  }
+  .terminal-block pre {
+    margin: 0;
+    padding-left: 26px;
+    white-space: pre;
+  }
+  .label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+  input, select {
+    background: #050608;
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 4px 6px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    width: 100%;
+  }
+  input:focus, select:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent-soft);
+  }
+  button {
+    background: #050608;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    padding: 4px 10px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    cursor: pointer;
+  }
+  button:hover {
+    background: var(--accent-soft);
+  }
+  button:active {
+    transform: translateY(1px);
+  }
+  .row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+  .row > * { flex: 1; }
+  .output {
+    font-size: 13px;
+    color: var(--accent);
+    margin-top: 4px;
+    min-height: 18px;
+    white-space: pre-wrap;
+  }
+  .output.error {
+    color: var(--danger);
+  }
+  canvas {
+    width: 100%;
+    height: 260px;
+    background: #050608;
+    border: 1px solid var(--border);
+  }
+  .axis-label {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+  .section-sep {
+    margin: 22px 0 10px;
+    border-top: 1px dashed var(--border);
+  }
+  .exercise {
+    border: 1px dashed var(--border);
+    padding: 8px 10px;
+    margin: 6px 0;
+    background: #050608;
+  }
+  .exercise-title {
+    color: var(--accent);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    margin-bottom: 4px;
+  }
+  .hint-btn {
+    border-color: var(--border);
+    color: var(--muted);
+    font-size: 10px;
+    padding: 2px 6px;
+  }
+  .hint {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 4px;
+    display: none;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    margin-top: 6px;
+  }
+  th, td {
+    border: 1px solid var(--border);
+    padding: 3px 4px;
+    text-align: left;
+  }
+  th {
+    background: #0b0f14;
+    color: var(--muted);
+  }
+</style>
+</head>
+<body>
+<div class="scanline"></div>
+<div class="container">
+  <div class="header">
+    <div class="header-title">Notebook 6 :: Higher Derivatives, Concavity & Inflection</div>
+    <div class="header-sub">Smirnov – A Course of Higher Mathematics, Vol. 1 – Second derivative and shape of curves</div>
+    <div class="badge">Mode: Offline · HTML/JS · Terminal/Hacker Theme</div>
+  </div>
+
+  <div class="grid">
+    <!-- THEORY COLUMN -->
+    <div>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Higher-Order Derivatives</div>
+          <div class="card-tag">theory</div>
+        </div>
+        <div class="card-body">
+          <p>If <span class="inline-code">f'(x)</span> is differentiable, its derivative is the <strong>second derivative</strong>:</p>
+          <div class="terminal-block">
+            <pre>
+f''(x) = (f'(x))'</pre>
+          </div>
+          <p>Similarly we define <span class="inline-code">f'''(x)</span>, <span class="inline-code">f⁽⁴⁾(x)</span>, …, <span class="inline-code">f⁽ⁿ⁾(x)</span>.</p>
+          <p>Example: for <span class="inline-code">f(x) = x³</span>:</p>
+          <div class="terminal-block">
+            <pre>
+f'(x)  = 3x²
+f''(x) = 6x
+f'''(x)= 6
+f⁽⁴⁾(x)= 0</pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:14px;">
+        <div class="card-header">
+          <div class="card-title">Concavity & Second Derivative</div>
+          <div class="card-tag">theory</div>
+        </div>
+        <div class="card-body">
+          <p>The sign of <span class="inline-code">f''(x)</span> describes the <strong>curvature</strong> of the graph:</p>
+          <div class="terminal-block">
+            <pre>
+f''(x) &gt; 0  ⇒  f is convex (concave up)
+f''(x) &lt; 0  ⇒  f is concave (concave down)</pre>
+          </div>
+          <p>Geometrically: concave up looks like a “cup”, concave down like a “cap”.</p>
+          <div class="quote">
+            “The second derivative measures how the slope itself changes.”
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:14px;">
+        <div class="card-header">
+          <div class="card-title">Points of Inflection</div>
+          <div class="card-tag">theory</div>
+        </div>
+        <div class="card-body">
+          <p>A point <span class="inline-code">x = a</span> is a <strong>point of inflection</strong> if the concavity changes:</p>
+          <ul>
+            <li><span class="inline-code">f''(x)</span> changes sign at <span class="inline-code">a</span></li>
+            <li>the graph passes from concave up to concave down or vice versa</li>
+          </ul>
+          <p>Often we solve <span class="inline-code">f''(x) = 0</span> and then check the sign of <span class="inline-code">f''</span> on each side.</p>
+          <p>Example: <span class="inline-code">f(x) = x³</span> has <span class="inline-code">f''(x) = 6x</span>, so <span class="inline-code">x = 0</span> is an inflection point.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- INTERACTIVE COLUMN -->
+    <div>
+      <!-- HIGHER DERIVATIVE EVALUATOR -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Higher Derivative Evaluator</div>
+          <div class="card-tag">interactive</div>
+        </div>
+        <div class="card-body">
+          <p class="label">1. Choose a function</p>
+          <select id="func-select">
+            <option value="x^2">f(x) = x^2</option>
+            <option value="x^3">f(x) = x^3</option>
+            <option value="x^4">f(x) = x^4</option>
+            <option value="sin(x)">f(x) = sin x</option>
+            <option value="cos(x)">f(x) = cos x</option>
+            <option value="exp(x)">f(x) = e^x</option>
+          </select>
+          <div class="row" style="margin-top:8px;">
+            <div>
+              <span class="label">x₀</span>
+              <input id="hd-x0" value="1" />
+            </div>
+            <div>
+              <span class="label">Order n</span>
+              <input id="hd-n" value="2" />
+            </div>
+          </div>
+          <button id="hd-btn">Compute numeric f⁽ⁿ⁾(x₀)</button>
+          <div id="hd-output" class="output"></div>
+        </div>
+      </div>
+
+      <!-- CONCAVITY VISUALIZER -->
+      <div class="card" style="margin-top:14px;">
+        <div class="card-header">
+          <div class="card-title">Concavity & Second Derivative</div>
+          <div class="card-tag">interactive</div>
+        </div>
+        <div class="card-body">
+          <p class="label">Plot f(x) and sign of f''(x)</p>
+          <div class="row">
+            <div>
+              <span class="label">x-range min</span>
+              <input id="cv-xmin" value="-3" />
+            </div>
+            <div>
+              <span class="label">x-range max</span>
+              <input id="cv-xmax" value="3" />
+            </div>
+          </div>
+          <button id="cv-btn">Plot</button>
+          <canvas id="cv-canvas" width="500" height="260"></canvas>
+          <div class="axis-label">Green: f(x) · Red dots: f''(x) &lt; 0 · Blue dots: f''(x) &gt; 0</div>
+        </div>
+      </div>
+
+      <!-- INFLECTION FINDER -->
+      <div class="card" style="margin-top:14px;">
+        <div class="card-header">
+          <div class="card-title">Inflection Finder (Numeric)</div>
+          <div class="card-tag">interactive</div>
+        </div>
+        <div class="card-body">
+          <p class="label">Scan for sign changes of f''(x)</p>
+          <div class="row">
+            <div>
+              <span class="label"># of sample points</span>
+              <input id="inf-samples" value="40" />
+            </div>
+          </div>
+          <button id="inf-btn">Scan for inflection candidates</button>
+          <div id="inf-output" class="output"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SMALL TABLE OF EXAMPLES -->
+  <div class="section-sep"></div>
+  <h2>Examples of f, f', f''</h2>
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">Reference Table</div>
+      <div class="card-tag">reference</div>
+    </div>
+    <div class="card-body">
+      <table>
+        <thead>
+          <tr><th>f(x)</th><th>f'(x)</th><th>f''(x)</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>x²</td><td>2x</td><td>2</td></tr>
+          <tr><td>x³</td><td>3x²</td><td>6x</td></tr>
+          <tr><td>x⁴</td><td>4x³</td><td>12x²</td></tr>
+          <tr><td>sin x</td><td>cos x</td><td>−sin x</td></tr>
+          <tr><td>cos x</td><td>−sin x</td><td>−cos x</td></tr>
+          <tr><td>eˣ</td><td>eˣ</td><td>eˣ</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- EXERCISES -->
+  <div class="section-sep"></div>
+  <h2>Exercises (Interactive Hints)</h2>
+
+  <div class="exercise">
+    <div class="exercise-title">Exercise 1 – Concavity of x³</div>
+    <p>Use the concavity visualizer with <span class="inline-code">f(x) = x³</span>. Where is the function concave up and concave down?</p>
+    <button class="hint-btn" data-hint="hint1">Show hint</button>
+    <div id="hint1" class="hint">
+      Compute <span class="inline-code">f''(x) = 6x</span>. It is negative for x &lt; 0 and positive for x &gt; 0.
+    </div>
+  </div>
+
+  <div class="exercise">
+    <div class="exercise-title">Exercise 2 – Inflection of x³</div>
+    <p>Use the inflection finder for <span class="inline-code">f(x) = x³</span> on <span class="inline-code">[-3, 3]</span>. What x-value is detected?</p>
+    <button class="hint-btn" data-hint="hint2">Show hint</button>
+    <div id="hint2" class="hint">
+      The sign of <span class="inline-code">f''(x) = 6x</span> changes at x = 0, so (0, 0) is an inflection point.
+    </div>
+  </div>
+
+  <div class="exercise">
+    <div class="exercise-title">Exercise 3 – x⁴</div>
+    <p>Investigate <span class="inline-code">f(x) = x⁴</span>. Does it have an inflection point at x = 0?</p>
+    <button class="hint-btn" data-hint="hint3">Show hint</button>
+    <div id="hint3" class="hint">
+      <span class="inline-code">f''(x) = 12x² ≥ 0</span> for all x, so the concavity does not change at 0.
+    </div>
+  </div>
+
+  <div class="exercise">
+    <div class="exercise-title">Exercise 4 – sin x</div>
+    <p>Use the concavity visualizer for <span class="inline-code">f(x) = sin x</span>. Where are the inflection points?</p>
+    <button class="hint-btn" data-hint="hint4">Show hint</button>
+    <div id="hint4" class="hint">
+      Since <span class="inline-code">f''(x) = −sin x</span>, inflection points occur where <span class="inline-code">sin x = 0</span>, i.e. at multiples of π.
+    </div>
+  </div>
+</div>
+
+<script>
+  // --- Utility: parse expression (sin, cos, etc. without Math.) ---
+  function buildFunction(expr) {
+    let e = expr.replace(/\^/g, "**");
+    const funcs = ["sin","cos","tan","exp","log","sqrt","abs"];
+    funcs.forEach(fn => {
+      e = e.replace(new RegExp("Math\\." + fn + "\\(", "g"), "__MATH__" + fn + "(");
+    });
+    funcs.forEach(fn => {
+      e = e.replace(new RegExp("\\b" + fn + "\\(", "g"), "Math." + fn + "(");
+    });
+    funcs.forEach(fn => {
+      e = e.replace(new RegExp("__MATH__" + fn + "\\(", "g"), "Math." + fn + "(");
+    });
+    return new Function("x", "return " + e + ";");
+  }
+
+  function numericDerivative(f, x0) {
+    const h = 1e-5;
+    return (f(x0 + h) - f(x0 - h)) / (2*h);
+  }
+
+  function numericNthDerivative(f, x0, n) {
+    if (n === 0) return f(x0);
+    let g = f;
+    for (let k = 0; k < n; k++) {
+      const prev = g;
+      g = function(x) { return numericDerivative(prev, x); };
+    }
+    return g(x0);
+  }
+
+  // --- Higher derivative evaluator ---
+  const funcSelect = document.getElementById("func-select");
+  const hdX0 = document.getElementById("hd-x0");
+  const hdN = document.getElementById("hd-n");
+  const hdBtn = document.getElementById("hd-btn");
+  const hdOutput = document.getElementById("hd-output");
+
+  hdBtn.addEventListener("click", () => {
+    hdOutput.classList.remove("error");
+    try {
+      const expr = funcSelect.value;
+      const f = buildFunction(expr);
+      const x0 = parseFloat(hdX0.value);
+      const n = parseInt(hdN.value, 10);
+      if (!isFinite(x0)) throw new Error("x₀ must be a number");
+      if (!isFinite(n) || n < 0 || n > 6) throw new Error("n must be an integer between 0 and 6");
+      const val = numericNthDerivative(f, x0, n);
+      hdOutput.textContent =
+        "f(x)   = " + expr +
+        "\nOrder n = " + n +
+        "\nApproximate f⁽ⁿ⁾(" + x0 + ") ≈ " + val;
+    } catch (err) {
+      hdOutput.textContent = "Error: " + err.message;
+      hdOutput.classList.add("error");
+    }
+  });
+
+  // --- Concavity visualizer ---
+  const cvXmin = document.getElementById("cv-xmin");
+  const cvXmax = document.getElementById("cv-xmax");
+  const cvBtn = document.getElementById("cv-btn");
+  const cvCanvas = document.getElementById("cv-canvas");
+  const cvCtx = cvCanvas.getContext("2d");
+
+  function drawAxes(ctx, canvas, xmin, xmax, ymin, ymax) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "#050608";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.strokeStyle = "#1a2a1a";
+    ctx.lineWidth = 1;
+
+    const gridCount = 10;
+    for (let i = 0; i <= gridCount; i++) {
+      const t = i / gridCount;
+      const x = t * canvas.width;
+      const y = t * canvas.height;
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, canvas.height);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(canvas.width, y);
+      ctx.stroke();
+    }
+
+    ctx.strokeStyle = "#00ff7f";
+    ctx.lineWidth = 1.2;
+
+    if (ymin < 0 && ymax > 0) {
+      const y0 = canvas.height * (1 - (0 - ymin) / (ymax - ymin));
+      ctx.beginPath();
+      ctx.moveTo(0, y0);
+      ctx.lineTo(canvas.width, y0);
+      ctx.stroke();
+    }
+
+    if (xmin < 0 && xmax > 0) {
+      const x0 = canvas.width * (0 - xmin) / (xmax - xmin);
+      ctx.beginPath();
+      ctx.moveTo(x0, 0);
+      ctx.lineTo(x0, canvas.height);
+      ctx.stroke();
+    }
+  }
+
+  cvBtn.addEventListener("click", () => {
+    try {
+      const expr = funcSelect.value;
+      const f = buildFunction(expr);
+      const xmin = parseFloat(cvXmin.value);
+      const xmax = parseFloat(cvXmax.value);
+      if (!isFinite(xmin) || !isFinite(xmax) || xmin >= xmax) {
+        throw new Error("Invalid x-range");
+      }
+      const N = 400;
+      const xs = [];
+      const ys = [];
+      const f2vals = [];
+      for (let i = 0; i < N; i++) {
+        const t = i / (N - 1);
+        const x = xmin + t * (xmax - xmin);
+        xs.push(x);
+        let y;
+        try { y = f(x); } catch { y = NaN; }
+        ys.push(isFinite(y) ? y : NaN);
+        const f2 = numericNthDerivative(f, x, 2);
+        f2vals.push(f2);
+      }
+      const finite = ys.filter(v => isFinite(v));
+      if (!finite.length) throw new Error("No finite values to plot");
+      let ymin = Math.min(...finite), ymax = Math.max(...finite);
+      if (ymin === ymax) { ymin -= 1; ymax += 1; }
+
+      drawAxes(cvCtx, cvCanvas, xmin, xmax, ymin, ymax);
+
+      // plot f(x)
+      cvCtx.strokeStyle = "#00ff7f";
+      cvCtx.lineWidth = 1.4;
+      cvCtx.beginPath();
+      let started = false;
+      for (let i = 0; i < xs.length; i++) {
+        const x = xs[i];
+        const y = ys[i];
+        if (!isFinite(y)) { started = false; continue; }
+        const px = (x - xmin)/(xmax - xmin)*cvCanvas.width;
+        const py = (1 - (y - ymin)/(ymax - ymin))*cvCanvas.height;
+        if (!started) { cvCtx.moveTo(px, py); started = true; }
+        else cvCtx.lineTo(px, py);
+      }
+      cvCtx.stroke();
+
+      // plot concavity markers
+      for (let i = 0; i < xs.length; i += 8) {
+        const x = xs[i];
+        const y = ys[i];
+        const f2 = f2vals[i];
+        if (!isFinite(y) || !isFinite(f2)) continue;
+        const px = (x - xmin)/(xmax - xmin)*cvCanvas.width;
+        const py = (1 - (y - ymin)/(ymax - ymin))*cvCanvas.height;
+        if (f2 > 0) {
+          cvCtx.fillStyle = "#3399ff"; // concave up
+        } else if (f2 < 0) {
+          cvCtx.fillStyle = "#ff4d4d"; // concave down
+        } else {
+          cvCtx.fillStyle = "#ffff66";
+        }
+        cvCtx.beginPath();
+        cvCtx.arc(px, py, 3, 0, 2*Math.PI);
+        cvCtx.fill();
+      }
+    } catch (err) {
+      cvCtx.clearRect(0, 0, cvCanvas.width, cvCanvas.height);
+      cvCtx.fillStyle = "#050608";
+      cvCtx.fillRect(0, 0, cvCanvas.width, cvCanvas.height);
+      cvCtx.fillStyle = "#ff4d4d";
+      cvCtx.font = "12px " + getComputedStyle(document.body).fontFamily;
+      cvCtx.fillText("Error: " + err.message, 10, 20);
+    }
+  });
+
+  // --- Inflection finder ---
+  const infSamples = document.getElementById("inf-samples");
+  const infBtn = document.getElementById("inf-btn");
+  const infOutput = document.getElementById("inf-output");
+
+  infBtn.addEventListener("click", () => {
+    infOutput.classList.remove("error");
+    try {
+      const expr = funcSelect.value;
+      const f = buildFunction(expr);
+      const xmin = parseFloat(cvXmin.value);
+      const xmax = parseFloat(cvXmax.value);
+      const samples = parseInt(infSamples.value, 10);
+      if (!isFinite(xmin) || !isFinite(xmax) || xmin >= xmax) {
+        throw new Error("Invalid x-range");
+      }
+      if (!isFinite(samples) || samples < 4) {
+        throw new Error("Samples must be ≥ 4");
+      }
+      const xs = [];
+      const f2 = [];
+      for (let i = 0; i < samples; i++) {
+        const t = i / (samples - 1);
+        const x = xmin + t * (xmax - xmin);
+        xs.push(x);
+        f2.push(numericNthDerivative(f, x, 2));
+      }
+      const candidates = [];
+      for (let i = 0; i < samples - 1; i++) {
+        const a = f2[i], b = f2[i+1];
+        if (!isFinite(a) || !isFinite(b)) continue;
+        if (a === 0) candidates.push(xs[i]);
+        if (a * b < 0) {
+          const xMid = 0.5*(xs[i] + xs[i+1]);
+          candidates.push(xMid);
+        }
+      }
+      if (!candidates.length) {
+        infOutput.textContent = "No sign change of f''(x) detected in this range.";
+      } else {
+        infOutput.textContent =
+          "Possible inflection x-values (approx):\n" +
+          candidates.map(v => v.toFixed(4)).join(", ");
+      }
+    } catch (err) {
+      infOutput.textContent = "Error: " + err.message;
+      infOutput.classList.add("error");
+    }
+  });
+
+  // Hints
+  document.querySelectorAll(".hint-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const id = btn.getAttribute("data-hint");
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.style.display = el.style.display === "block" ? "none" : "block";
+    });
+  });
+
+  // Initial runs
+  hdBtn.click();
+  cvBtn.click();
+  infBtn.click();
+</script>
+</body>
+</html>
+

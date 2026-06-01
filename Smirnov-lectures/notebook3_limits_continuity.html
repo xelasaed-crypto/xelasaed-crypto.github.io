@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Notebook 3 – Limits & Continuity (Terminal Style)</title>
+<style>
+  :root {
+    --bg: #050608;
+    --bg-alt: #0b0f14;
+    --accent: #00ff7f;
+    --accent-soft: #00ff7f33;
+    --text: #e5ffe5;
+    --muted: #7fbf7f;
+    --danger: #ff4d4d;
+    --border: #1a2a1a;
+    --font-mono: "Fira Code", "JetBrains Mono", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 0;
+    background: radial-gradient(circle at top, #101820 0, #050608 55%);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 14px;
+  }
+  .scanline {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0.15),
+      rgba(0, 0, 0, 0.15) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+    mix-blend-mode: soft-light;
+    opacity: 0.4;
+    z-index: 999;
+  }
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 20px 16px 60px;
+  }
+  .header {
+    border: 1px solid var(--border);
+    background: linear-gradient(135deg, #050608 0, #0b0f14 60%, #050608 100%);
+    padding: 16px 18px;
+    margin-bottom: 18px;
+    box-shadow: 0 0 18px #00ff7f22;
+  }
+  .header-title {
+    color: var(--accent);
+    font-size: 20px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  .header-sub {
+    color: var(--muted);
+    margin-top: 4px;
+  }
+  .badge {
+    display: inline-block;
+    border: 1px solid var(--accent-soft);
+    color: var(--accent);
+    padding: 2px 8px;
+    margin-top: 8px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: minmax(0, 2.1fr) minmax(0, 1.4fr);
+    gap: 16px;
+  }
+  @media (max-width: 900px) {
+    .grid { grid-template-columns: 1fr; }
+  }
+  .card {
+    border: 1px solid var(--border);
+    background: radial-gradient(circle at top left, #101820 0, #050608 55%);
+    padding: 14px 14px 16px;
+    position: relative;
+    overflow: hidden;
+  }
+  .card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, transparent 0, #00ff7f11 40%, transparent 100%);
+    opacity: 0.4;
+    pointer-events: none;
+  }
+  .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  .card-title {
+    color: var(--accent);
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+  }
+  .card-tag {
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .card-body {
+    position: relative;
+    z-index: 1;
+  }
+  h2 {
+    color: var(--accent);
+    font-size: 15px;
+    margin: 18px 0 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+  }
+  p {
+    margin: 6px 0;
+    color: var(--text);
+  }
+  .quote {
+    border-left: 2px solid var(--accent-soft);
+    padding-left: 10px;
+    margin: 8px 0;
+    color: var(--muted);
+    font-size: 13px;
+  }
+  .inline-code {
+    background: #0b0f14;
+    border: 1px solid var(--border);
+    padding: 1px 4px;
+    border-radius: 2px;
+    font-size: 12px;
+  }
+  .terminal-block {
+    background: #050608;
+    border: 1px solid var(--border);
+    padding: 8px 10px;
+    font-size: 12px;
+    overflow-x: auto;
+    position: relative;
+  }
+  .terminal-block::before {
+    content: ">>> ";
+    color: var(--accent);
+    position: absolute;
+    left: 8px;
+    top: 6px;
+  }
+  .terminal-block pre {
+    margin: 0;
+    padding-left: 26px;
+    white-space: pre;
+  }
+  .label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+  input {
+    background: #050608;
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 4px 6px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    width: 100%;
+  }
+  input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent-soft);
+  }
+  button {
+    background: #050608;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    padding: 4px 10px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    cursor: pointer;
+  }
+  button:hover {
+    background: var(--accent-soft);
+  }
+  button:active {
+    transform: translateY(1px);
+  }
+  .row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+  .row > * { flex: 1; }
+  .output {
+    font-size: 13px;
+    color: var(--accent);
+    margin-top: 4px;
+    min-height: 18px;
+    white-space: pre-wrap;
+  }
+  .output.error {
+    color: var(--danger);
+  }
+  canvas {
+    width: 100%;
+    height: 260px;
+    background: #050608;
+    border: 1px solid var(--border);
+  }
+  .axis-label {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+  .section-sep {
+    margin: 22px 0 10px;
+    border-top: 1px dashed var(--border);
+  }
+  .exercise {
+    border: 1px dashed var(--border);
+    padding: 8px 10px;
+    margin: 6px 0;
+    background: #050608;
+  }
+  .exercise-title {
+    color: var(--accent);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    margin-bottom: 4px;
+  }
+  .hint-btn {
+    border-color: var(--border);
+    color: var(--muted);
+    font-size: 10px;
+    padding: 2px 6px;
+  }
+  .hint {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 4px;
+    display: none;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    margin-top: 6px;
+  }
+  th, td {
+    border: 1px solid var(--border);
+    padding: 3px 4px;
+    text-align: right;
+  }
+  th {
+    background: #0b0f14;
+    color: var(--muted);
+  }
+</style>
+</head>
+<body>
+<div class="scanline"></div>
+<div class="container">
+  <div class="header">
+    <div class="header-title">Notebook 3 :: Limits & Continuity</div>
+    <div class="header-sub">Smirnov – A Course of Higher Mathematics, Vol. 1 – Theory of Limits</div>
+    <div class="badge">Mode: Offline · HTML/JS · Terminal/Hacker Theme</div>
+  </div>
+
+  <div class="grid">
+    <!-- THEORY COLUMN -->
+    <div>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Intuition of a Limit</div>
+          <div class="card-tag">theory</div>
+        </div>
+        <div class="card-body">
+          <p>We say that <span class="inline-code">lim_{x→a} f(x) = L</span> if the values of <span class="inline-code">f(x)</span> get arbitrarily close to <span class="inline-code">L</span> when <span class="inline-code">x</span> is taken sufficiently close to <span class="inline-code">a</span>.</p>
+          <div class="quote">
+            “The limit of a function is the value which the function approaches as the variable approaches a given point.”
+          </div>
+          <p>Important: the value of <span class="inline-code">f(a)</span> (if it exists) may be different from the limit, or even undefined.</p>
+          <div class="terminal-block">
+            <pre>
+f(x) = (x² − 1) / (x − 1)
+lim_{x→1} f(x) = 2
+but f(1) is not defined (division by zero)</pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:14px;">
+        <div class="card-header">
+          <div class="card-title">Left & Right Limits</div>
+          <div class="card-tag">theory</div>
+        </div>
+        <div class="card-body">
+          <p>We distinguish:</p>
+          <ul>
+            <li><span class="inline-code">lim_{x→a^-} f(x)</span> – from the left</li>
+            <li><span class="inline-code">lim_{x→a^+} f(x)</span> – from the right</li>
+          </ul>
+          <p>The limit exists (and equals <span class="inline-code">L</span>) if both one-sided limits exist and are equal to <span class="inline-code">L</span>.</p>
+          <div class="terminal-block">
+            <pre>
+f(x) = { 1, x &lt; 0
+       { 2, x ≥ 0
+
+lim_{x→0^-} f(x) = 1
+lim_{x→0^+} f(x) = 2
+⇒ lim_{x→0} f(x) does not exist</pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:14px;">
+        <div class="card-header">
+          <div class="card-title">Continuity</div>
+          <div class="card-tag">theory</div>
+        </div>
+        <div class="card-body">
+          <p>A function <span class="inline-code">f</span> is <strong>continuous at a point</strong> <span class="inline-code">a</span> if:</p>
+          <ul>
+            <li><span class="inline-code">f(a)</span> is defined</li>
+            <li><span class="inline-code">lim_{x→a} f(x)</span> exists</li>
+            <li><span class="inline-code">lim_{x→a} f(x) = f(a)</span></li>
+          </ul>
+          <p>Geometrically: the graph has no “jump” or “hole” at <span class="inline-code">x = a</span>.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- INTERACTIVE COLUMN -->
+    <div>
+      <!-- NUMERIC LIMIT EXPLORER -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Numeric Limit Explorer</div>
+          <div class="card-tag">interactive</div>
+        </div>
+        <div class="card-body">
+          <p class="label">1. Define f(x)</p>
+          <input id="func-input" value="(x*x - 1)/(x - 1)" />
+          <p style="font-size:11px;color:var(--muted);margin-top:2px;">
+            Example: <span class="inline-code">(x*x - 1)/(x - 1)</span>, <span class="inline-code">sin(x)/x</span>, <span class="inline-code">(x-2)/(x-2)</span>, etc.
+          </p>
+          <div class="row" style="margin-top:8px;">
+            <div>
+              <span class="label">2. Point a (x → a)</span>
+              <input id="limit-a" value="1" />
+            </div>
+            <div>
+              <span class="label"># of steps</span>
+              <input id="limit-steps" value="6" />
+            </div>
+          </div>
+          <button id="limit-btn">Compute approaching values</button>
+          <div id="limit-table"></div>
+        </div>
+      </div>
+
+      <!-- GRAPH + HIGHLIGHTED POINT -->
+      <div class="card" style="margin-top:14px;">
+        <div class="card-header">
+          <div class="card-title">Graph Near a Point</div>
+          <div class="card-tag">interactive</div>
+        </div>
+        <div class="card-body">
+          <p class="label">Plot f(x) near x = a</p>
+          <div class="row">
+            <div>
+              <span class="label">Window radius (around a)</span>
+              <input id="window-radius" value="1" />
+            </div>
+          </div>
+          <button id="plot-btn">Plot near a</button>
+          <canvas id="plot-canvas" width="500" height="260"></canvas>
+          <div class="axis-label">Green: graph of f(x) · Red: x = a</div>
+        </div>
+      </div>
+
+      <!-- CONTINUITY CHECKER -->
+      <div class="card" style="margin-top:14px;">
+        <div class="card-header">
+          <div class="card-title">Continuity Checker (Numeric)</div>
+          <div class="card-tag">interactive</div>
+        </div>
+        <div class="card-body">
+          <p class="label">Check approximate continuity at x = a</p>
+          <button id="cont-btn">Estimate left/right limits & f(a)</button>
+          <div id="cont-output" class="output"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EXERCISES -->
+  <div class="section-sep"></div>
+  <h2>Exercises (Interactive Hints)</h2>
+
+  <div class="exercise">
+    <div class="exercise-title">Exercise 1 – Removable discontinuity</div>
+    <p>Consider <span class="inline-code">f(x) = (x² − 1)/(x − 1)</span>. What is <span class="inline-code">lim_{x→1} f(x)</span>? Is f continuous at x = 1?</p>
+    <button class="hint-btn" data-hint="hint1">Show hint</button>
+    <div id="hint1" class="hint">
+      Use the numeric limit explorer at a = 1. Then simplify algebraically: <span class="inline-code">(x² − 1)/(x − 1) = x + 1</span> for x ≠ 1.
+    </div>
+  </div>
+
+  <div class="exercise">
+    <div class="exercise-title">Exercise 2 – Jump discontinuity</div>
+    <p>Define a piecewise function: <span class="inline-code">f(x) = 1</span> for <span class="inline-code">x &lt; 0</span>, <span class="inline-code">f(x) = 2</span> for <span class="inline-code">x ≥ 0</span>. What are the left and right limits at 0?</p>
+    <button class="hint-btn" data-hint="hint2">Show hint</button>
+    <div id="hint2" class="hint">
+      You can’t encode the piecewise function directly here, but reason: approaching 0 from negative side gives 1, from positive side gives 2.
+    </div>
+  </div>
+
+  <div class="exercise">
+    <div class="exercise-title">Exercise 3 – sin(x)/x</div>
+    <p>Investigate <span class="inline-code">f(x) = sin(x)/x</span> near <span class="inline-code">x = 0</span>. What does the numeric limit suggest?</p>
+    <button class="hint-btn" data-hint="hint3">Show hint</button>
+    <div id="hint3" class="hint">
+      Use the numeric limit explorer with <span class="inline-code">sin(x)/x</span> and a = 0 (in radians). The limit is known to be 1.
+    </div>
+  </div>
+
+  <div class="exercise">
+    <div class="exercise-title">Exercise 4 – Continuity check</div>
+    <p>For <span class="inline-code">f(x) = x²</span>, check continuity at <span class="inline-code">x = 2</span> using the continuity checker.</p>
+    <button class="hint-btn" data-hint="hint4">Show hint</button>
+    <div id="hint4" class="hint">
+      Set f(x) = x*x, a = 2. Left and right numeric limits should both be close to 4, and f(2) = 4.
+    </div>
+  </div>
+</div>
+
+<script>
+  // --- Utility: parse expression ---
+  function buildFunction(expr) {
+    let e = expr.replace(/\^/g, "**");
+    const funcs = ["sin","cos","tan","exp","log","sqrt","abs"];
+    funcs.forEach(fn => {
+      e = e.replace(new RegExp("\\b" + fn + "\\(", "g"), "Math." + fn + "(");
+    });
+    return new Function("x", "return " + e + ";");
+  }
+
+  // --- Numeric limit explorer ---
+  const funcInput = document.getElementById("func-input");
+  const limitAInput = document.getElementById("limit-a");
+  const limitStepsInput = document.getElementById("limit-steps");
+  const limitBtn = document.getElementById("limit-btn");
+  const limitTableDiv = document.getElementById("limit-table");
+
+  limitBtn.addEventListener("click", () => {
+    limitTableDiv.innerHTML = "";
+    try {
+      const f = buildFunction(funcInput.value);
+      const a = parseFloat(limitAInput.value);
+      const steps = parseInt(limitStepsInput.value, 10);
+      if (!isFinite(a) || !isFinite(steps) || steps < 2) {
+        throw new Error("Invalid a or steps");
+      }
+      const base = 10;
+      let html = "<table><thead><tr><th>k</th><th>x_left</th><th>f(x_left)</th><th>x_right</th><th>f(x_right)</th></tr></thead><tbody>";
+      for (let k = 1; k <= steps; k++) {
+        const h = Math.pow(base, -k);
+        const xl = a - h;
+        const xr = a + h;
+        let fl, fr;
+        try { fl = f(xl); } catch { fl = NaN; }
+        try { fr = f(xr); } catch { fr = NaN; }
+        html += "<tr><td>" + k + "</td><td>" + xl.toExponential(4) + "</td><td>" +
+                (isFinite(fl) ? fl.toExponential(4) : "NaN") + "</td><td>" +
+                xr.toExponential(4) + "</td><td>" +
+                (isFinite(fr) ? fr.toExponential(4) : "NaN") + "</td></tr>";
+      }
+      html += "</tbody></table>";
+      limitTableDiv.innerHTML = html;
+    } catch (err) {
+      limitTableDiv.innerHTML = "<div class='output error'>Error: " + err.message + "</div>";
+    }
+  });
+
+  // --- Plot near a ---
+  const windowRadiusInput = document.getElementById("window-radius");
+  const plotBtn = document.getElementById("plot-btn");
+  const canvas = document.getElementById("plot-canvas");
+  const ctx = canvas.getContext("2d");
+
+  function drawAxes(ctx, canvas, xmin, xmax, ymin, ymax, a) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "#050608";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.strokeStyle = "#1a2a1a";
+    ctx.lineWidth = 1;
+
+    const gridCount = 10;
+    for (let i = 0; i <= gridCount; i++) {
+      const t = i / gridCount;
+      const x = t * canvas.width;
+      const y = t * canvas.height;
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, canvas.height);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(canvas.width, y);
+      ctx.stroke();
+    }
+
+    ctx.strokeStyle = "#00ff7f";
+    ctx.lineWidth = 1.2;
+
+    if (ymin < 0 && ymax > 0) {
+      const y0 = canvas.height * (1 - (0 - ymin) / (ymax - ymin));
+      ctx.beginPath();
+      ctx.moveTo(0, y0);
+      ctx.lineTo(canvas.width, y0);
+      ctx.stroke();
+    }
+
+    if (xmin < 0 && xmax > 0) {
+      const x0 = canvas.width * (0 - xmin) / (xmax - xmin);
+      ctx.beginPath();
+      ctx.moveTo(x0, 0);
+      ctx.lineTo(x0, canvas.height);
+      ctx.stroke();
+    }
+
+    // vertical line at x = a
+    if (a > xmin && a < xmax) {
+      const xa = canvas.width * (a - xmin) / (xmax - xmin);
+      ctx.strokeStyle = "#ff4d4d";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(xa, 0);
+      ctx.lineTo(xa, canvas.height);
+      ctx.stroke();
+    }
+  }
+
+  plotBtn.addEventListener("click", () => {
+    try {
+      const f = buildFunction(funcInput.value);
+      const a = parseFloat(limitAInput.value);
+      const r = parseFloat(windowRadiusInput.value);
+      if (!isFinite(a) || !isFinite(r) || r <= 0) {
+        throw new Error("Invalid a or radius");
+      }
+      const xmin = a - r;
+      const xmax = a + r;
+
+      const N = 400;
+      const xs = [];
+      const ys = [];
+      for (let i = 0; i < N; i++) {
+        const t = i / (N - 1);
+        const x = xmin + t * (xmax - xmin);
+        let y;
+        try { y = f(x); } catch { y = NaN; }
+        xs.push(x);
+        ys.push(isFinite(y) ? y : NaN);
+      }
+
+      const finiteYs = ys.filter(v => isFinite(v));
+      if (finiteYs.length === 0) throw new Error("No finite values to plot");
+      let ymin = Math.min(...finiteYs);
+      let ymax = Math.max(...finiteYs);
+      if (ymin === ymax) {
+        ymin -= 1;
+        ymax += 1;
+      }
+
+      drawAxes(ctx, canvas, xmin, xmax, ymin, ymax, a);
+
+      ctx.strokeStyle = "#00ff7f";
+      ctx.lineWidth = 1.4;
+      ctx.beginPath();
+      let started = false;
+      for (let i = 0; i < xs.length; i++) {
+        const x = xs[i];
+        const y = ys[i];
+        if (!isFinite(y)) { started = false; continue; }
+        const px = (x - xmin) / (xmax - xmin) * canvas.width;
+        const py = (1 - (y - ymin) / (ymax - ymin)) * canvas.height;
+        if (!started) {
+          ctx.moveTo(px, py);
+          started = true;
+        } else {
+          ctx.lineTo(px, py);
+        }
+      }
+      ctx.stroke();
+    } catch (err) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = "#050608";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = "#ff4d4d";
+      ctx.font = "12px " + getComputedStyle(document.body).fontFamily;
+      ctx.fillText("Error: " + err.message, 10, 20);
+    }
+  });
+
+  // --- Continuity checker (numeric) ---
+  const contBtn = document.getElementById("cont-btn");
+  const contOutput = document.getElementById("cont-output");
+
+  contBtn.addEventListener("click", () => {
+    contOutput.classList.remove("error");
+    try {
+      const f = buildFunction(funcInput.value);
+      const a = parseFloat(limitAInput.value);
+      if (!isFinite(a)) throw new Error("Invalid a");
+      const h = 1e-4;
+      let fl, fr, fa;
+      try { fl = f(a - h); } catch { fl = NaN; }
+      try { fr = f(a + h); } catch { fr = NaN; }
+      try { fa = f(a); } catch { fa = NaN; }
+
+      let txt = "Approximate left limit  f(a−) ≈ " + (isFinite(fl) ? fl : "NaN") +
+                "\nApproximate right limit f(a+) ≈ " + (isFinite(fr) ? fr : "NaN") +
+                "\nFunction value          f(a)   = " + (isFinite(fa) ? fa : "NaN") +
+                "\n\nHeuristic continuity check:\n";
+
+      if (isFinite(fl) && isFinite(fr) && Math.abs(fl - fr) < 1e-3) {
+        txt += "Left and right limits are close.\n";
+        if (isFinite(fa) && Math.abs(fl - fa) < 1e-3) {
+          txt += "f(a) matches the limit ⇒ f is likely continuous at a.";
+        } else if (isFinite(fa)) {
+          txt += "f(a) ≠ limit ⇒ removable or jump discontinuity.";
+        } else {
+          txt += "f(a) undefined ⇒ removable discontinuity candidate.";
+        }
+      } else {
+        txt += "Left and right limits differ or are undefined ⇒ no limit at a.";
+      }
+
+      contOutput.textContent = txt;
+    } catch (err) {
+      contOutput.textContent = "Error: " + err.message;
+      contOutput.classList.add("error");
+    }
+  });
+
+  // --- Hints ---
+  document.querySelectorAll(".hint-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const id = btn.getAttribute("data-hint");
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.style.display = el.style.display === "block" ? "none" : "block";
+    });
+  });
+
+  // Initial computations
+  limitBtn.click();
+  plotBtn.click();
+</script>
+</body>
+</html>
+

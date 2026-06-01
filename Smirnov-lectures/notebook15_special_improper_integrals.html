@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Notebook 15 – Special & Improper Integrals (Terminal Style)</title>
+<style>
+  :root {
+    --bg: #050608;
+    --bg-alt: #0b0f14;
+    --accent: #00ff7f;
+    --accent-soft: #00ff7f33;
+    --text: #e5ffe5;
+    --muted: #7fbf7f;
+    --danger: #ff4d4d;
+    --border: #1a2a1a;
+    --font-mono: "Fira Code", "JetBrains Mono", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 0;
+    background: radial-gradient(circle at top, #101820 0, #050608 55%);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 14px;
+  }
+  .scanline {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0.15),
+      rgba(0, 0, 0, 0.15) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+    mix-blend-mode: soft-light;
+    opacity: 0.4;
+    z-index: 999;
+  }
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 20px 16px 60px;
+  }
+  .header {
+    border: 1px solid var(--border);
+    background: linear-gradient(135deg, #050608 0, #0b0f14 60%, #050608 100%);
+    padding: 16px 18px;
+    margin-bottom: 18px;
+    box-shadow: 0 0 18px #00ff7f22;
+  }
+  .header-title {
+    color: var(--accent);
+    font-size: 20px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  .header-sub {
+    color: var(--muted);
+    margin-top: 4px;
+  }
+  .badge {
+    display: inline-block;
+    border: 1px solid var(--accent-soft);
+    color: var(--accent);
+    padding: 2px 8px;
+    margin-top: 8px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: minmax(0, 2.1fr) minmax(0, 1.4fr);
+    gap: 16px;
+  }
+  @media (max-width: 900px) {
+    .grid { grid-template-columns: 1fr; }
+  }
+  .card {
+    border: 1px solid var(--border);
+    background: radial-gradient(circle at top left, #101820 0, #050608 55%);
+    padding: 14px 14px 16px;
+    position: relative;
+    overflow: hidden;
+  }
+  .card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, transparent 0, #00ff7f11 40%, transparent 100%);
+    opacity: 0.4;
+    pointer-events: none;
+  }
+  .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  .card-title {
+    color: var(--accent);
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+  }
+  .card-tag {
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .card-body {
+    position: relative;
+    z-index: 1;
+  }
+  h2 {
+    color: var(--accent);
+    font-size: 15px;
+    margin: 18px 0 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+  }
+  p {
+    margin: 6px 0;
+    color: var(--text);
+  }
+  .quote {
+    border-left: 2px solid var(--accent-soft);
+    padding-left: 10px;
+    margin: 8px 0;
+    color: var(--muted);
+    font-size: 13px;
+  }
+  .terminal-block {
+    background: #050608;
+    border: 1px solid var(--border);
+    padding: 8px 10px;
+    font-size: 12px;
+    overflow-x: auto;
+    position: relative;
+  }
+  .terminal-block::before {
+    content: ">>> ";
+    color: var(--accent);
+    position: absolute;
+    left: 8px;
+    top: 6px;
+  }
+  .terminal-block pre {
+    margin: 0;
+    padding-left: 26px;
+    white-space: pre;
+  }
+  .label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+  input, select {
+    background: #050608;
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 4px 6px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    width: 100%;
+  }
+  input:focus, select:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent-soft);
+  }
+  button {
+    background: #050608;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    padding: 4px 10px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    cursor: pointer;
+  }
+  button:hover {
+    background: var(--accent-soft);
+  }
+  button:active {
+    transform: translateY(1px);
+  }
+  .row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+  .row > * { flex: 1; }
+  .output {
+    font-size: 13px;
+    color: var(--accent);
+    margin-top: 4px;
+    min-height: 18px;
+    white-space: pre-wrap;
+  }
+  .output.error {
+    color: var(--danger);
+  }
+  .section-sep {
+    margin: 22px 0 10px;
+    border-top: 1px dashed var(--border);
+  }
+  .exercise {
+    border: 1px dashed var(--border);
+    padding: 8px 10px;
+    margin: 6px 0;
+    background: #050608;
+  }
+  .exercise-title {
+    color: var(--accent);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    margin-bottom: 4px;
+  }
+  .hint-btn {
+    border-color: var(--border);
+    color: var(--muted);
+    font-size: 10px;
+    padding: 2px 6px;
+  }
+  .hint {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 4px;
+    display: none;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    margin-top: 6px;
+  }
+  th, td {
+    border: 1px solid var(--border);
+    padding: 3px 4px;
+    text-align: left;
+  }
+  th {
+    background: #0b0f14;
+    color: var(--muted);
+  }
+</style>
+</head>
+<body>
+<div class="scanline"></div>
+<div class="container">
+  <div class="header">
+    <div class="header-title">Notebook 15 :: Special & Improper Integrals</div>
+    <div class="header-sub">Convergence · Infinite Limits · Endpoint Singularities · Special Values</div>
+    <div class="badge">Mode: Offline · HTML/JS · Terminal/Hacker Theme</div>
+  </div>
+
+  <div class="grid">
+    <!-- THEORY COLUMN -->
+    <div>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Improper Integrals – Infinite Interval</div>
+          <div class="card-tag">theory</div>
+        </div>
+        <div class="card-body">
+          <p>For ∫ₐ^∞ f(x) dx we define</p>
+          <div class="terminal-block">
+            <pre>
+∫ₐ^∞ f(x) dx = lim_{b→∞} ∫ₐᵇ f(x) dx</pre>
+          </div>
+          <p>If the limit exists (finite), the integral converges; otherwise it diverges.</p>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:14px;">
+        <div class="card-header">
+          <div class="card-title">Improper Integrals – Endpoint Singularity</div>
+          <div class="card-tag">theory</div>
+        </div>
+        <div class="card-body">
+          <p>For ∫ₐᵇ f(x) dx with a singularity at a, define</p>
+          <div class="terminal-block">
+            <pre>
+∫ₐᵇ f(x) dx = lim_{ε→0⁺} ∫_{a+ε}ᵇ f(x) dx</pre>
+          </div>
+          <p>Similarly for singularities at b.</p>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:14px;">
+        <div class="card-header">
+          <div class="card-title">Typical Convergence Tests</div>
+          <div class="card-tag">theory</div>
+        </div>
+        <div class="card-body">
+          <div class="terminal-block">
+            <pre>
+∫₁^∞ 1/x^p dx converges ⇔ p &gt; 1
+∫₀¹ 1/x^p dx converges ⇔ p &lt; 1</pre>
+          </div>
+          <p>These are the basic p-integrals used as comparison benchmarks.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- INTERACTIVE COLUMN -->
+    <div>
+      <!-- INFINITE LIMIT EXPLORER -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Infinite Limit Explorer</div>
+          <div class="card-tag">interactive</div>
+        </div>
+        <div class="card-body">
+          <p class="label">f(x) on [a, ∞) (you may use x or t)</p>
+          <input id="inf-integrand" value="1/x^2" />
+          <div class="row" style="margin-top:8px;">
+            <div>
+              <span class="label">a</span>
+              <input id="inf-a" value="1" />
+            </div>
+            <div>
+              <span class="label">b-max (finite cutoff)</span>
+              <input id="inf-bmax" value="20" />
+            </div>
+          </div>
+          <button id="inf-btn">Compute ∫ₐ^B f(x) dx for growing B</button>
+          <div id="inf-output" class="output"></div>
+        </div>
+      </div>
+
+      <!-- SINGULARITY EXPLORER -->
+      <div class="card" style="margin-top:14px;">
+        <div class="card-header">
+          <div class="card-title">Endpoint Singularity Explorer</div>
+          <div class="card-tag">interactive</div>
+        </div>
+        <div class="card-body">
+          <p class="label">f(x) on (0, 1] (you may use x or t)</p>
+          <input id="sing-integrand" value="1/sqrt(x)" />
+          <div class="row" style="margin-top:8px;">
+            <div>
+              <span class="label">ε-min</span>
+              <input id="sing-emin" value="0.1" />
+            </div>
+            <div>
+              <span class="label">ε-max</span>
+              <input id="sing-emax" value="0.001" />
+            </div>
+          </div>
+          <button id="sing-btn">Compute ∫_{ε}^1 f(x) dx as ε → 0⁺</button>
+          <div id="sing-output" class="output"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SPECIAL VALUES -->
+  <div class="section-sep"></div>
+  <h2>Special Integrals</h2>
+  <div class="grid">
+    <div>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Gaussian & Related</div>
+          <div class="card-tag">theory</div>
+        </div>
+        <div class="card-body">
+          <div class="terminal-block">
+            <pre>
+∫_{−∞}^{∞} e^{−x²} dx = √π
+∫₀^{∞} e^{−x} dx = 1
+∫₀^{∞} x e^{−x} dx = 1!</pre>
+          </div>
+          <p>These are prototypes for probability and gamma function.</p>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">p-Integrals & Comparison</div>
+          <div class="card-tag">interactive</div>
+        </div>
+        <div class="card-body">
+          <p class="label">p in ∫₁^∞ 1/x^p dx</p>
+          <input id="p-int-p" value="2" />
+          <button id="p-int-btn" style="margin-top:8px;">Approximate ∫₁^B 1/x^p dx for large B</button>
+          <div id="p-int-output" class="output"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SUMMARY TABLE -->
+  <div class="section-sep"></div>
+  <h2>Summary: Improper Integrals</h2>
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">Key Concepts</div>
+      <div class="card-tag">reference</div>
+    </div>
+    <div class="card-body">
+      <table>
+        <thead>
+          <tr><th>Type</th><th>Definition</th><th>Convergence idea</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Infinite interval</td>
+            <td>∫ₐ^∞ f = lim_{b→∞} ∫ₐᵇ f</td>
+            <td>Check limit as upper bound grows</td>
+          </tr>
+          <tr>
+            <td>Endpoint singularity</td>
+            <td>∫ₐᵇ f = lim_{ε→0⁺} ∫_{a+ε}ᵇ f</td>
+            <td>Check limit as you approach the singular point</td>
+          </tr>
+          <tr>
+            <td>p-integrals</td>
+            <td>∫₁^∞ 1/x^p, ∫₀¹ 1/x^p</td>
+            <td>Compare with p = 1 threshold</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- EXERCISES -->
+  <div class="section-sep"></div>
+  <h2>Exercises (Interactive Hints)</h2>
+
+  <div class="exercise">
+    <div class="exercise-title">Exercise 1 – 1/x² on [1, ∞)</div>
+    <p>Use the infinite limit explorer with f(x) = 1/x^2 and see convergence.</p>
+    <button class="hint-btn" data-hint="hint1">Show hint</button>
+    <div id="hint1" class="hint">
+      Exact value: ∫₁^∞ 1/x² dx = 1.
+    </div>
+  </div>
+
+  <div class="exercise">
+    <div class="exercise-title">Exercise 2 – 1/x on [1, ∞)</div>
+    <p>Try f(x) = 1/x and see what happens as B grows.</p>
+    <button class="hint-btn" data-hint="hint2">Show hint</button>
+    <div id="hint2" class="hint">
+      ∫₁^B 1/x dx = ln B, which diverges as B → ∞.
+    </div>
+  </div>
+
+  <div class="exercise">
+    <div class="exercise-title">Exercise 3 – 1/√x on (0, 1]</div>
+    <p>Use the singularity explorer with f(x) = 1/sqrt(x) and see convergence.</p>
+    <button class="hint-btn" data-hint="hint3">Show hint</button>
+    <div id="hint3" class="hint">
+      ∫₀¹ 1/√x dx = 2, convergent despite the singularity at 0.
+    </div>
+  </div>
+</div>
+
+<script>
+  // --- Variable-safe function builder (Option C) ---
+  function buildSafeFunction(expr, variableName) {
+    let e = expr.replace(/\^/g, "**");
+    e = e.trim();
+
+    const funcs = ["sin","cos","tan","exp","log","sqrt","abs","asin","acos","atan"];
+    funcs.forEach(fn => {
+      e = e.replace(new RegExp("Math\\." + fn + "\\(", "g"), "__MATH__" + fn + "(");
+    });
+    funcs.forEach(fn => {
+      e = e.replace(new RegExp("\\b" + fn + "\\(", "g"), "Math." + fn + "(");
+    });
+    funcs.forEach(fn => {
+      e = e.replace(new RegExp("__MATH__" + fn + "\\(", "g"), "Math." + fn + "(");
+    });
+
+    const varList = ["x","t","u","v","y","z"];
+    varList.forEach(v => {
+      if (v !== variableName) {
+        e = e.replace(new RegExp("\\b" + v + "\\b", "g"), variableName);
+      }
+    });
+
+    return new Function(variableName, "return " + e + ";");
+  }
+
+  function numericIntegral(f, a, b, N) {
+    if (N < 1) N = 1;
+    const h = (b - a) / N;
+    let sum = 0;
+    for (let i = 0; i <= N; i++) {
+      const x = a + i * h;
+      const w = (i === 0 || i === N) ? 0.5 : 1;
+      sum += w * f(x);
+    }
+    return sum * h;
+  }
+
+  // --- Infinite Limit Explorer ---
+  const infIntegrand = document.getElementById("inf-integrand");
+  const infA = document.getElementById("inf-a");
+  const infBmax = document.getElementById("inf-bmax");
+  const infBtn = document.getElementById("inf-btn");
+  const infOutput = document.getElementById("inf-output");
+
+  infBtn.addEventListener("click", () => {
+    infOutput.classList.remove("error");
+    try {
+      const expr = infIntegrand.value;
+      const f = buildSafeFunction(expr, "x");
+      const a = parseFloat(infA.value);
+      const bmax = parseFloat(infBmax.value);
+      if (!isFinite(a) || !isFinite(bmax) || a >= bmax) throw new Error("Invalid a or b-max");
+
+      const Bs = [2, 5, 10, bmax];
+      let text = "f(x) = " + expr + "\n";
+      Bs.forEach(B => {
+        const val = numericIntegral(f, a, B, 4000);
+        text += "∫_" + a + "^" + B + " f(x) dx ≈ " + val + "\n";
+      });
+      infOutput.textContent = text.trimEnd();
+    } catch (err) {
+      infOutput.textContent = "Error: " + err.message;
+      infOutput.classList.add("error");
+    }
+  });
+
+  // --- Singularity Explorer ---
+  const singIntegrand = document.getElementById("sing-integrand");
+  const singEmin = document.getElementById("sing-emin");
+  const singEmax = document.getElementById("sing-emax");
+  const singBtn = document.getElementById("sing-btn");
+  const singOutput = document.getElementById("sing-output");
+
+  singBtn.addEventListener("click", () => {
+    singOutput.classList.remove("error");
+    try {
+      const expr = singIntegrand.value;
+      const f = buildSafeFunction(expr, "x");
+      const emin = parseFloat(singEmin.value);
+      const emax = parseFloat(singEmax.value);
+      if (!isFinite(emin) || !isFinite(emax) || emin <= emax || emin <= 0 || emax <= 0)
+        throw new Error("Need 0 < ε_max < ε_min");
+
+      const epsilons = [emin, (emin+emax)/2, emax];
+      let text = "f(x) = " + expr + "\n";
+      epsilons.forEach(eps => {
+        const val = numericIntegral(f, eps, 1, 4000);
+        text += "∫_" + eps + "^1 f(x) dx ≈ " + val + "\n";
+      });
+      singOutput.textContent = text.trimEnd();
+    } catch (err) {
+      singOutput.textContent = "Error: " + err.message;
+      singOutput.classList.add("error");
+    }
+  });
+
+  // --- p-integral Explorer ---
+  const pIntP = document.getElementById("p-int-p");
+  const pIntBtn = document.getElementById("p-int-btn");
+  const pIntOutput = document.getElementById("p-int-output");
+
+  pIntBtn.addEventListener("click", () => {
+    pIntOutput.classList.remove("error");
+    try {
+      const p = parseFloat(pIntP.value);
+      if (!isFinite(p)) throw new Error("p must be a number");
+      const f = x => 1 / Math.pow(x, p);
+      const Bs = [2, 5, 10, 50];
+      let text = "∫₁^B 1/x^" + p + " dx\n";
+      Bs.forEach(B => {
+        const val = numericIntegral(f, 1, B, 4000);
+        text += "B = " + B + " ⇒ ≈ " + val + "\n";
+      });
+      text = text.trimEnd();
+      if (p !== 1) {
+        const exact = (p > 1) ? (1 / (p - 1)) : Infinity;
+        text += "\n\nTheoretical behavior: ";
+        if (p > 1) text += "convergent, limit = 1/(p−1) ≈ " + exact;
+        else if (p === 1) text += "divergent like ln B.";
+        else text += "divergent (integral grows without bound).";
+      } else {
+        text += "\n\nTheoretical behavior: divergent like ln B.";
+      }
+      pIntOutput.textContent = text;
+    } catch (err) {
+      pIntOutput.textContent = "Error: " + err.message;
+      pIntOutput.classList.add("error");
+    }
+  });
+
+  // Hints
+  document.querySelectorAll(".hint-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const id = btn.getAttribute("data-hint");
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.style.display = el.style.display === "block" ? "none" : "block";
+    });
+  });
+
+  // Initial runs
+  infBtn.click();
+  singBtn.click();
+  pIntBtn.click();
+</script>
+</body>
+</html>

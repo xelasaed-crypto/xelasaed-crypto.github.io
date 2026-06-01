@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Notebook 2 – Graphs & Equations of Curves (Terminal Style)</title>
+<style>
+  :root {
+    --bg: #050608;
+    --bg-alt: #0b0f14;
+    --accent: #00ff7f;
+    --accent-soft: #00ff7f33;
+    --text: #e5ffe5;
+    --muted: #7fbf7f;
+    --danger: #ff4d4d;
+    --border: #1a2a1a;
+    --font-mono: "Fira Code", "JetBrains Mono", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 0;
+    background: radial-gradient(circle at top, #101820 0, #050608 55%);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 14px;
+  }
+  .scanline {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0.15),
+      rgba(0, 0, 0, 0.15) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+    mix-blend-mode: soft-light;
+    opacity: 0.4;
+    z-index: 999;
+  }
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 20px 16px 60px;
+  }
+  .header {
+    border: 1px solid var(--border);
+    background: linear-gradient(135deg, #050608 0, #0b0f14 60%, #050608 100%);
+    padding: 16px 18px;
+    margin-bottom: 18px;
+    box-shadow: 0 0 18px #00ff7f22;
+  }
+  .header-title {
+    color: var(--accent);
+    font-size: 20px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  .header-sub {
+    color: var(--muted);
+    margin-top: 4px;
+  }
+  .badge {
+    display: inline-block;
+    border: 1px solid var(--accent-soft);
+    color: var(--accent);
+    padding: 2px 8px;
+    margin-top: 8px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: minmax(0, 2.1fr) minmax(0, 1.4fr);
+    gap: 16px;
+  }
+  @media (max-width: 900px) {
+    .grid { grid-template-columns: 1fr; }
+  }
+  .card {
+    border: 1px solid var(--border);
+    background: radial-gradient(circle at top left, #101820 0, #050608 55%);
+    padding: 14px 14px 16px;
+    position: relative;
+    overflow: hidden;
+  }
+  .card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, transparent 0, #00ff7f11 40%, transparent 100%);
+    opacity: 0.4;
+    pointer-events: none;
+  }
+  .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  .card-title {
+    color: var(--accent);
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+  }
+  .card-tag {
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .card-body {
+    position: relative;
+    z-index: 1;
+  }
+  h2, h3 {
+    color: var(--accent);
+    font-size: 15px;
+    margin: 18px 0 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+  }
+  p {
+    margin: 6px 0;
+    color: var(--text);
+  }
+  .quote {
+    border-left: 2px solid var(--accent-soft);
+    padding-left: 10px;
+    margin: 8px 0;
+    color: var(--muted);
+    font-size: 13px;
+  }
+  .inline-code {
+    background: #0b0f14;
+    border: 1px solid var(--border);
+    padding: 1px 4px;
+    border-radius: 2px;
+    font-size: 12px;
+  }
+  .terminal-block {
+    background: #050608;
+    border: 1px solid var(--border);
+    padding: 8px 10px;
+    font-size: 12px;
+    overflow-x: auto;
+    position: relative;
+  }
+  .terminal-block::before {
+    content: ">>> ";
+    color: var(--accent);
+    position: absolute;
+    left: 8px;
+    top: 6px;
+  }
+  .terminal-block pre {
+    margin: 0;
+    padding-left: 26px;
+    white-space: pre;
+  }
+  .label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+  input {
+    background: #050608;
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 4px 6px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    width: 100%;
+  }
+  input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent-soft);
+  }
+  button {
+    background: #050608;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    padding: 4px 10px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    cursor: pointer;
+  }
+  button:hover {
+    background: var(--accent-soft);
+  }
+  button:active {
+    transform: translateY(1px);
+  }
+  .row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+  .row > * { flex: 1; }
+  .output {
+    font-size: 13px;
+    color: var(--accent);
+    margin-top: 4px;
+    min-height: 18px;
+    white-space: pre-wrap;
+  }
+  .output.error {
+    color: var(--danger);
+  }
+  canvas {
+    width: 100%;
+    height: 260px;
+    background: #050608;
+    border: 1px solid var(--border);
+  }
+  .axis-label {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+  .pill {
+    display: inline-block;
+    padding: 1px 6px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    font-size: 11px;
+    color: var(--muted);
+    margin-right: 4px;
+  }
+  .section-sep {
+    margin: 22px 0 10px;
+    border-top: 1px dashed var(--border);
+  }
+  .exercise {
+    border: 1px dashed var(--border);
+    padding: 8px 10px;
+    margin: 6px 0;
+    background: #050608;
+  }
+  .exercise-title {
+    color: var(--accent);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    margin-bottom: 4px;
+  }
+  .hint-btn {
+    border-color: var(--border);
+    color: var(--muted);
+    font-size: 10px;
+    padding: 2px 6px;
+  }
+  .hint {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 4px;
+    display: none;
+  }
+</style>
+</head>
+<body>
+<div class="scanline"></div>
+<div class="container">
+  <div class="header">
+    <div class="header-title">Notebook 2 :: Graphs & Equations of Curves</div>
+    <div class="header-sub">Smirnov – A Course of Higher Mathematics, Vol. 1 – Chapter I (Graphs of Functions)</div>
+    <div class="badge">Mode: Offline · HTML/JS · Terminal/Hacker Theme</div>
+  </div>
+
+  <div class="grid">
+    <!-- THEORY COLUMN -->
+    <div>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Cartesian Plane & Graphs</div>
+          <div class="card-tag">theory</div>
+        </div>
+        <div class="card-body">
+          <p>The <strong>Cartesian plane</strong> is determined by two perpendicular axes: the horizontal <span class="inline-code">x</span>-axis and the vertical <span class="inline-code">y</span>-axis.</p>
+          <div class="quote">
+            “The graph of an equation is the curve whose points satisfy the equation.”
+          </div>
+          <p>Given an equation <span class="inline-code">y = f(x)</span>, its graph is the set of all points <span class="inline-code">(x, f(x))</span> in the plane.</p>
+          <p>Examples:</p>
+          <ul>
+            <li><span class="inline-code">y = ax + b</span> – straight line</li>
+            <li><span class="inline-code">y = x²</span> – parabola</li>
+            <li><span class="inline-code">y = 1/x</span> – hyperbola (two branches)</li>
+          </ul>
+          <div class="terminal-block">
+            <pre>
+y = 2x + 1      // line with slope 2, intercept 1
+y = x*x         // parabola opening upwards
+y = 1/x         // hyperbola, undefined at x = 0</pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:14px;">
+        <div class="card-header">
+          <div class="card-title">Straight Lines & Slope</div>
+          <div class="card-tag">theory</div>
+        </div>
+        <div class="card-body">
+          <p>A straight line can be written as <span class="inline-code">y = mx + c</span>, where:</p>
+          <ul>
+            <li><strong>m</strong> – slope (rate of change)</li>
+            <li><strong>c</strong> – y-intercept (value at <span class="inline-code">x = 0</span>)</li>
+          </ul>
+          <p>Given two points <span class="inline-code">(x₁, y₁)</span> and <span class="inline-code">(x₂, y₂)</span>, the slope is</p>
+          <div class="terminal-block">
+            <pre>
+m = (y₂ − y₁) / (x₂ − x₁)</pre>
+          </div>
+          <p>The equation of the line through these points is</p>
+          <div class="terminal-block">
+            <pre>
+y = y₁ + (y₂ − y₁) * (x − x₁) / (x₂ − x₁)</pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:14px;">
+        <div class="card-header">
+          <div class="card-title">Transformations of Graphs</div>
+          <div class="card-tag">theory</div>
+        </div>
+        <div class="card-body">
+          <p>Starting from a base function <span class="inline-code">y = f(x)</span>, we can transform its graph:</p>
+          <ul>
+            <li><span class="inline-code">y = f(x) + c</span> – vertical shift</li>
+            <li><span class="inline-code">y = a f(x)</span> – vertical scaling</li>
+            <li><span class="inline-code">y = f(x - h)</span> – horizontal shift</li>
+            <li><span class="inline-code">y = f(-x)</span> – reflection in the y-axis</li>
+          </ul>
+          <p>We will visualize these transformations interactively on the right.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- INTERACTIVE COLUMN -->
+    <div>
+      <!-- FUNCTION PLOTTER (REUSED TEMPLATE) -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Graph Plotter</div>
+          <div class="card-tag">interactive</div>
+        </div>
+        <div class="card-body">
+          <p class="label">1. Define a function f(x)</p>
+          <input id="func-input" value="x*x - 3*x + 2" />
+          <p style="font-size:11px;color:var(--muted);margin-top:2px;">
+            Allowed: <span class="inline-code">x</span>, <span class="inline-code">+</span>, <span class="inline-code">-</span>, <span class="inline-code">*</span>, <span class="inline-code">/</span>, <span class="inline-code">^</span>, <span class="inline-code">sin(x)</span>, <span class="inline-code">exp(x)</span>, <span class="inline-code">sqrt(x)</span>, etc.
+          </p>
+          <div class="row" style="margin-top:8px;">
+            <div>
+              <span class="label">xmin</span>
+              <input id="plot-xmin" value="-5" />
+            </div>
+            <div>
+              <span class="label">xmax</span>
+              <input id="plot-xmax" value="5" />
+            </div>
+          </div>
+          <button id="plot-btn">Plot f(x)</button>
+          <canvas id="plot-canvas" width="500" height="260"></canvas>
+          <div class="axis-label">Horizontal axis: x · Vertical axis: f(x)</div>
+        </div>
+      </div>
+
+      <!-- SLOPE CALCULATOR -->
+      <div class="card" style="margin-top:14px;">
+        <div class="card-header">
+          <div class="card-title">Slope Between Two Points</div>
+          <div class="card-tag">interactive</div>
+        </div>
+        <div class="card-body">
+          <p class="label">Enter two points (x₁, y₁), (x₂, y₂)</p>
+          <div class="row">
+            <div>
+              <span class="label">x₁</span>
+              <input id="x1-input" value="0" />
+            </div>
+            <div>
+              <span class="label">y₁</span>
+              <input id="y1-input" value="1" />
+            </div>
+          </div>
+          <div class="row">
+            <div>
+              <span class="label">x₂</span>
+              <input id="x2-input" value="2" />
+            </div>
+            <div>
+              <span class="label">y₂</span>
+              <input id="y2-input" value="5" />
+            </div>
+          </div>
+          <button id="slope-btn">Compute slope & line</button>
+          <div id="slope-output" class="output"></div>
+        </div>
+      </div>
+
+      <!-- TRANSFORMATION VISUALIZER -->
+      <div class="card" style="margin-top:14px;">
+        <div class="card-header">
+          <div class="card-title">Graph Transformations</div>
+          <div class="card-tag">interactive</div>
+        </div>
+        <div class="card-body">
+          <p class="label">Base function g(x)</p>
+          <input id="base-func-input" value="x*x" />
+          <p class="label" style="margin-top:8px;">Transformation parameters</p>
+          <div class="row">
+            <div>
+              <span class="label">a (vertical scale)</span>
+              <input id="a-input" value="1" />
+            </div>
+            <div>
+              <span class="label">h (horizontal shift)</span>
+              <input id="h-input" value="0" />
+            </div>
+            <div>
+              <span class="label">c (vertical shift)</span>
+              <input id="c-input" value="0" />
+            </div>
+          </div>
+          <button id="transform-btn">Plot g(x) and a·g(x−h)+c</button>
+          <canvas id="transform-canvas" width="500" height="260"></canvas>
+          <div class="axis-label">Green: base g(x) · Magenta: transformed curve</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EXERCISES -->
+  <div class="section-sep"></div>
+  <h2>Exercises (Interactive Hints)</h2>
+
+  <div class="exercise">
+    <div class="exercise-title">Exercise 1 – Line from two points</div>
+    <p>Find the equation of the line passing through <span class="inline-code">(1, 2)</span> and <span class="inline-code">(4, 8)</span>. Plot it.</p>
+    <button class="hint-btn" data-hint="hint1">Show hint</button>
+    <div id="hint1" class="hint">
+      Use the slope calculator with those points; then use the formula <span class="inline-code">y = y₁ + m(x − x₁)</span> and plot it in the graph plotter.
+    </div>
+  </div>
+
+  <div class="exercise">
+    <div class="exercise-title">Exercise 2 – Parabola vs line</div>
+    <p>Plot <span class="inline-code">y = x²</span> and <span class="inline-code">y = 2x + 1</span> on <span class="inline-code">[-3, 3]</span>. Where do they intersect?</p>
+    <button class="hint-btn" data-hint="hint2">Show hint</button>
+    <div id="hint2" class="hint">
+      Plot each function separately; then solve <span class="inline-code">x² = 2x + 1</span> (a quadratic equation) to find intersection points.
+    </div>
+  </div>
+
+  <div class="exercise">
+    <div class="exercise-title">Exercise 3 – Transformations</div>
+    <p>Starting from <span class="inline-code">g(x) = x²</span>, produce the graph of <span class="inline-code">y = (x − 1)² + 2</span> using the transformation tool.</p>
+    <button class="hint-btn" data-hint="hint3">Show hint</button>
+    <div id="hint3" class="hint">
+      Set <span class="inline-code">a = 1</span>, <span class="inline-code">h = 1</span>, <span class="inline-code">c = 2</span>. The transformed curve is <span class="inline-code">g(x−1)+2 = (x−1)²+2</span>.
+    </div>
+  </div>
+
+  <div class="exercise">
+    <div class="exercise-title">Exercise 4 – Symmetry</div>
+    <p>Compare the graphs of <span class="inline-code">y = x³</span> and <span class="inline-code">y = −x³</span>. What symmetry do you observe?</p>
+    <button class="hint-btn" data-hint="hint4">Show hint</button>
+    <div id="hint4" class="hint">
+      Use the plotter with <span class="inline-code">x*x*x</span> and <span class="inline-code">-x*x*x</span>. One is the reflection of the other in the x-axis.
+    </div>
+  </div>
+</div>
+
+<script>
+  // --- Utility: parse expression ---
+  function buildFunction(expr) {
+    let e = expr.replace(/\^/g, "**");
+    const funcs = ["sin","cos","tan","exp","log","sqrt","abs"];
+    funcs.forEach(fn => {
+      e = e.replace(new RegExp("\\b" + fn + "\\(", "g"), "Math." + fn + "(");
+    });
+    return new Function("x", "return " + e + ";");
+  }
+
+  // --- Plotter (main) ---
+  const funcInput = document.getElementById("func-input");
+  const plotXmin = document.getElementById("plot-xmin");
+  const plotXmax = document.getElementById("plot-xmax");
+  const plotBtn = document.getElementById("plot-btn");
+  const canvas = document.getElementById("plot-canvas");
+  const ctx = canvas.getContext("2d");
+
+  function drawAxes(ctx, canvas, xmin, xmax, ymin, ymax) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "#050608";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.strokeStyle = "#1a2a1a";
+    ctx.lineWidth = 1;
+
+    const gridCount = 10;
+    for (let i = 0; i <= gridCount; i++) {
+      const t = i / gridCount;
+      const x = t * canvas.width;
+      const y = t * canvas.height;
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, canvas.height);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(canvas.width, y);
+      ctx.stroke();
+    }
+
+    ctx.strokeStyle = "#00ff7f";
+    ctx.lineWidth = 1.2;
+
+    if (ymin < 0 && ymax > 0) {
+      const y0 = canvas.height * (1 - (0 - ymin) / (ymax - ymin));
+      ctx.beginPath();
+      ctx.moveTo(0, y0);
+      ctx.lineTo(canvas.width, y0);
+      ctx.stroke();
+    }
+
+    if (xmin < 0 && xmax > 0) {
+      const x0 = canvas.width * (0 - xmin) / (xmax - xmin);
+      ctx.beginPath();
+      ctx.moveTo(x0, 0);
+      ctx.lineTo(x0, canvas.height);
+      ctx.stroke();
+    }
+  }
+
+  function plotFunction(ctx, canvas, f, xmin, xmax, color) {
+    const N = 400;
+    const xs = [];
+    const ys = [];
+    for (let i = 0; i < N; i++) {
+      const t = i / (N - 1);
+      const x = xmin + t * (xmax - xmin);
+      let y;
+      try { y = f(x); } catch { y = NaN; }
+      if (isFinite(y)) {
+        xs.push(x);
+        ys.push(y);
+      }
+    }
+    if (ys.length === 0) throw new Error("No finite values to plot");
+
+    let ymin = Math.min(...ys);
+    let ymax = Math.max(...ys);
+    if (ymin === ymax) {
+      ymin -= 1;
+      ymax += 1;
+    }
+
+    drawAxes(ctx, canvas, xmin, xmax, ymin, ymax);
+
+    ctx.strokeStyle = color || "#00ff7f";
+    ctx.lineWidth = 1.4;
+    ctx.beginPath();
+    let started = false;
+    for (let i = 0; i < xs.length; i++) {
+      const x = xs[i];
+      const y = ys[i];
+      const px = (x - xmin) / (xmax - xmin) * canvas.width;
+      const py = (1 - (y - ymin) / (ymax - ymin)) * canvas.height;
+      if (!started) {
+        ctx.moveTo(px, py);
+        started = true;
+      } else {
+        ctx.lineTo(px, py);
+      }
+    }
+    ctx.stroke();
+
+    return { ymin, ymax };
+  }
+
+  plotBtn.addEventListener("click", () => {
+    try {
+      const f = buildFunction(funcInput.value);
+      const xmin = parseFloat(plotXmin.value);
+      const xmax = parseFloat(plotXmax.value);
+      if (!isFinite(xmin) || !isFinite(xmax) || xmin >= xmax) {
+        throw new Error("Invalid x-range");
+      }
+      plotFunction(ctx, canvas, f, xmin, xmax, "#00ff7f");
+    } catch (err) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = "#050608";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = "#ff4d4d";
+      ctx.font = "12px " + getComputedStyle(document.body).fontFamily;
+      ctx.fillText("Error: " + err.message, 10, 20);
+    }
+  });
+
+  // --- Slope calculator ---
+  const x1Input = document.getElementById("x1-input");
+  const y1Input = document.getElementById("y1-input");
+  const x2Input = document.getElementById("x2-input");
+  const y2Input = document.getElementById("y2-input");
+  const slopeBtn = document.getElementById("slope-btn");
+  const slopeOutput = document.getElementById("slope-output");
+
+  slopeBtn.addEventListener("click", () => {
+    slopeOutput.classList.remove("error");
+    try {
+      const x1 = parseFloat(x1Input.value);
+      const y1 = parseFloat(y1Input.value);
+      const x2 = parseFloat(x2Input.value);
+      const y2 = parseFloat(y2Input.value);
+      if (!isFinite(x1) || !isFinite(y1) || !isFinite(x2) || !isFinite(y2)) {
+        throw new Error("All coordinates must be numbers");
+      }
+      if (x1 === x2) throw new Error("Vertical line: slope is infinite");
+      const m = (y2 - y1) / (x2 - x1);
+      const c = y1 - m * x1;
+      slopeOutput.textContent =
+        "m = " + m + "\nLine: y = " + m + " * x + " + c;
+    } catch (err) {
+      slopeOutput.textContent = "Error: " + err.message;
+      slopeOutput.classList.add("error");
+    }
+  });
+
+  // --- Transformation visualizer ---
+  const baseFuncInput = document.getElementById("base-func-input");
+  const aInput = document.getElementById("a-input");
+  const hInput = document.getElementById("h-input");
+  const cInput = document.getElementById("c-input");
+  const transformBtn = document.getElementById("transform-btn");
+  const tCanvas = document.getElementById("transform-canvas");
+  const tCtx = tCanvas.getContext("2d");
+
+  transformBtn.addEventListener("click", () => {
+    try {
+      const g = buildFunction(baseFuncInput.value);
+      const a = parseFloat(aInput.value);
+      const h = parseFloat(hInput.value);
+      const c = parseFloat(cInput.value);
+      if (!isFinite(a) || !isFinite(h) || !isFinite(c)) {
+        throw new Error("Parameters a, h, c must be numbers");
+      }
+      const xmin = -5;
+      const xmax = 5;
+
+      // First plot base to get y-range
+      const N = 400;
+      const xs = [];
+      const ysBase = [];
+      const ysTrans = [];
+      for (let i = 0; i < N; i++) {
+        const t = i / (N - 1);
+        const x = xmin + t * (xmax - xmin);
+        let yb, yt;
+        try { yb = g(x); } catch { yb = NaN; }
+        try { yt = a * g(x - h) + c; } catch { yt = NaN; }
+        if (isFinite(yb)) {
+          xs.push(x);
+          ysBase.push(yb);
+        } else {
+          xs.push(x);
+          ysBase.push(NaN);
+        }
+        ysTrans.push(isFinite(yt) ? yt : NaN);
+      }
+
+      const finiteBase = ysBase.filter(v => isFinite(v));
+      const finiteTrans = ysTrans.filter(v => isFinite(v));
+      if (finiteBase.length === 0 && finiteTrans.length === 0) {
+        throw new Error("No finite values to plot");
+      }
+      let ymin = Math.min(
+        finiteBase.length ? Math.min(...finiteBase) : Infinity,
+        finiteTrans.length ? Math.min(...finiteTrans) : Infinity
+      );
+      let ymax = Math.max(
+        finiteBase.length ? Math.max(...finiteBase) : -Infinity,
+        finiteTrans.length ? Math.max(...finiteTrans) : -Infinity
+      );
+      if (ymin === ymax) {
+        ymin -= 1;
+        ymax += 1;
+      }
+
+      drawAxes(tCtx, tCanvas, xmin, xmax, ymin, ymax);
+
+      // plot base
+      tCtx.strokeStyle = "#00ff7f";
+      tCtx.lineWidth = 1.4;
+      tCtx.beginPath();
+      let started = false;
+      for (let i = 0; i < xs.length; i++) {
+        const x = xs[i];
+        const y = ysBase[i];
+        if (!isFinite(y)) { started = false; continue; }
+        const px = (x - xmin) / (xmax - xmin) * tCanvas.width;
+        const py = (1 - (y - ymin) / (ymax - ymin)) * tCanvas.height;
+        if (!started) {
+          tCtx.moveTo(px, py);
+          started = true;
+        } else {
+          tCtx.lineTo(px, py);
+        }
+      }
+      tCtx.stroke();
+
+      // plot transformed
+      tCtx.strokeStyle = "#ff4dff";
+      tCtx.lineWidth = 1.4;
+      tCtx.beginPath();
+      started = false;
+      for (let i = 0; i < xs.length; i++) {
+        const x = xs[i];
+        const y = ysTrans[i];
+        if (!isFinite(y)) { started = false; continue; }
+        const px = (x - xmin) / (xmax - xmin) * tCanvas.width;
+        const py = (1 - (y - ymin) / (ymax - ymin)) * tCanvas.height;
+        if (!started) {
+          tCtx.moveTo(px, py);
+          started = true;
+        } else {
+          tCtx.lineTo(px, py);
+        }
+      }
+      tCtx.stroke();
+    } catch (err) {
+      tCtx.clearRect(0, 0, tCanvas.width, tCanvas.height);
+      tCtx.fillStyle = "#050608";
+      tCtx.fillRect(0, 0, tCanvas.width, tCanvas.height);
+      tCtx.fillStyle = "#ff4d4d";
+      tCtx.font = "12px " + getComputedStyle(document.body).fontFamily;
+      tCtx.fillText("Error: " + err.message, 10, 20);
+    }
+  });
+
+  // --- Hints ---
+  document.querySelectorAll(".hint-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const id = btn.getAttribute("data-hint");
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.style.display = el.style.display === "block" ? "none" : "block";
+    });
+  });
+
+  // Initial plots
+  plotBtn.click();
+  transformBtn.click();
+</script>
+</body>
+</html>
+

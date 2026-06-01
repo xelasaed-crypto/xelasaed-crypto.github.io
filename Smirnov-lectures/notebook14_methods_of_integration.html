@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Notebook 14 – Methods of Integration (Terminal Style)</title>
+<style>
+  :root {
+    --bg: #050608;
+    --bg-alt: #0b0f14;
+    --accent: #00ff7f;
+    --accent-soft: #00ff7f33;
+    --text: #e5ffe5;
+    --muted: #7fbf7f;
+    --danger: #ff4d4d;
+    --border: #1a2a1a;
+    --font-mono: "Fira Code", "JetBrains Mono", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 0;
+    background: radial-gradient(circle at top, #101820 0, #050608 55%);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 14px;
+  }
+  .scanline {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0.15),
+      rgba(0, 0, 0, 0.15) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+    mix-blend-mode: soft-light;
+    opacity: 0.4;
+    z-index: 999;
+  }
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 20px 16px 60px;
+  }
+  .header {
+    border: 1px solid var(--border);
+    background: linear-gradient(135deg, #050608 0, #0b0f14 60%, #050608 100%);
+    padding: 16px 18px;
+    margin-bottom: 18px;
+    box-shadow: 0 0 18px #00ff7f22;
+  }
+  .header-title {
+    color: var(--accent);
+    font-size: 20px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  .header-sub {
+    color: var(--muted);
+    margin-top: 4px;
+  }
+  .badge {
+    display: inline-block;
+    border: 1px solid var(--accent-soft);
+    color: var(--accent);
+    padding: 2px 8px;
+    margin-top: 8px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: minmax(0, 2.1fr) minmax(0, 1.4fr);
+    gap: 16px;
+  }
+  @media (max-width: 900px) {
+    .grid { grid-template-columns: 1fr; }
+  }
+  .card {
+    border: 1px solid var(--border);
+    background: radial-gradient(circle at top left, #101820 0, #050608 55%);
+    padding: 14px 14px 16px;
+    position: relative;
+    overflow: hidden;
+  }
+  .card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, transparent 0, #00ff7f11 40%, transparent 100%);
+    opacity: 0.4;
+    pointer-events: none;
+  }
+  .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  .card-title {
+    color: var(--accent);
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+  }
+  .card-tag {
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .card-body {
+    position: relative;
+    z-index: 1;
+  }
+  h2 {
+    color: var(--accent);
+    font-size: 15px;
+    margin: 18px 0 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+  }
+  p {
+    margin: 6px 0;
+    color: var(--text);
+  }
+  .quote {
+    border-left: 2px solid var(--accent-soft);
+    padding-left: 10px;
+    margin: 8px 0;
+    color: var(--muted);
+    font-size: 13px;
+  }
+  .terminal-block {
+    background: #050608;
+    border: 1px solid var(--border);
+    padding: 8px 10px;
+    font-size: 12px;
+    overflow-x: auto;
+    position: relative;
+  }
+  .terminal-block::before {
+    content: ">>> ";
+    color: var(--accent);
+    position: absolute;
+    left: 8px;
+    top: 6px;
+  }
+  .terminal-block pre {
+    margin: 0;
+    padding-left: 26px;
+    white-space: pre;
+  }
+  .label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+  input, select {
+    background: #050608;
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 4px 6px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    width: 100%;
+  }
+  input:focus, select:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent-soft);
+  }
+  button {
+    background: #050608;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    padding: 4px 10px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    cursor: pointer;
+  }
+  button:hover {
+    background: var(--accent-soft);
+  }
+  button:active {
+    transform: translateY(1px);
+  }
+  .row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+  .row > * { flex: 1; }
+  .output {
+    font-size: 13px;
+    color: var(--accent);
+    margin-top: 4px;
+    min-height: 18px;
+    white-space: pre-wrap;
+  }
+  .output.error {
+    color: var(--danger);
+  }
+  .section-sep {
+    margin: 22px 0 10px;
+    border-top: 1px dashed var(--border);
+  }
+  .exercise {
+    border: 1px dashed var(--border);
+    padding: 8px 10px;
+    margin: 6px 0;
+    background: #050608;
+  }
+  .exercise-title {
+    color: var(--accent);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    margin-bottom: 4px;
+  }
+  .hint-btn {
+    border-color: var(--border);
+    color: var(--muted);
+    font-size: 10px;
+    padding: 2px 6px;
+  }
+  .hint {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 4px;
+    display: none;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    margin-top: 6px;
+  }
+  th, td {
+    border: 1px solid var(--border);
+    padding: 3px 4px;
+    text-align: left;
+  }
+  th {
+    background: #0b0f14;
+    color: var(--muted);
+  }
+</style>
+</head>
+<body>
+<div class="scanline"></div>
+<div class="container">
+  <div class="header">
+    <div class="header-title">Notebook 14 :: Methods of Integration</div>
+    <div class="header-sub">Substitution · Integration by Parts · Basic Patterns</div>
+    <div class="badge">Mode: Offline · HTML/JS · Terminal/Hacker Theme</div>
+  </div>
+
+  <div class="grid">
+    <!-- THEORY COLUMN -->
+    <div>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Substitution Rule</div>
+          <div class="card-tag">theory</div>
+        </div>
+        <div class="card-body">
+          <p>If u = φ(x) is differentiable and φ'(x) exists, then</p>
+          <div class="terminal-block">
+            <pre>
+∫ f(φ(x)) φ'(x) dx = ∫ f(u) du</pre>
+          </div>
+          <p>We change variables so that the integrand becomes simpler in u.</p>
+          <div class="quote">
+            “Spot a chain rule in reverse: something of the form f(g(x))·g'(x).”
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:14px;">
+        <div class="card-header">
+          <div class="card-title">Integration by Parts</div>
+          <div class="card-tag">theory</div>
+        </div>
+        <div class="card-body">
+          <p>From the product rule (uv)' = u'v + uv', we get</p>
+          <div class="terminal-block">
+            <pre>
+∫ u dv = uv − ∫ v du</pre>
+          </div>
+          <p>Choose u to simplify when differentiated, dv to be easily integrable.</p>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:14px;">
+        <div class="card-header">
+          <div class="card-title">Typical Patterns</div>
+          <div class="card-tag">theory</div>
+        </div>
+        <div class="card-body">
+          <div class="terminal-block">
+            <pre>
+Substitution:
+  ∫ cos x dx, ∫ e^{ax} dx, ∫ (ax+b)^n dx, ∫ f(g(x)) g'(x) dx
+
+Parts:
+  ∫ x e^x dx, ∫ x sin x dx, ∫ ln x dx, ∫ x^n e^x dx</pre>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- INTERACTIVE COLUMN -->
+    <div>
+      <!-- SUBSTITUTION EXPLORER -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Substitution Explorer</div>
+          <div class="card-tag">interactive</div>
+        </div>
+        <div class="card-body">
+          <p class="label">Integrand f(x) (you may use x or t)</p>
+          <input id="sub-integrand" value="cos(x)" />
+          <p class="label" style="margin-top:8px;">Suggested substitution u = φ(x)</p>
+          <input id="sub-phi" value="x" />
+          <div class="row" style="margin-top:8px;">
+            <div>
+              <span class="label">a</span>
+              <input id="sub-a" value="0" />
+            </div>
+            <div>
+              <span class="label">b</span>
+              <input id="sub-b" value="3.1416" />
+            </div>
+          </div>
+          <button id="sub-btn">Compare numeric ∫ₐᵇ f(x) dx with u-substitution</button>
+          <div id="sub-output" class="output"></div>
+        </div>
+      </div>
+
+      <!-- PARTS EXPLORER -->
+      <div class="card" style="margin-top:14px;">
+        <div class="card-header">
+          <div class="card-title">Integration by Parts Explorer</div>
+          <div class="card-tag">interactive</div>
+        </div>
+        <div class="card-body">
+          <p class="label">u(x)</p>
+          <input id="parts-u" value="x" />
+          <p class="label" style="margin-top:8px;">v'(x) (this is dv/dx)</p>
+          <input id="parts-vp" value="exp(x)" />
+          <div class="row" style="margin-top:8px;">
+            <div>
+              <span class="label">a</span>
+              <input id="parts-a" value="0" />
+            </div>
+            <div>
+              <span class="label">b</span>
+              <input id="parts-b" value="1" />
+            </div>
+          </div>
+          <button id="parts-btn">Compute ∫ₐᵇ u v' dx via parts and numerically</button>
+          <div id="parts-output" class="output"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STANDARD EXAMPLES -->
+  <div class="section-sep"></div>
+  <h2>Standard Examples</h2>
+  <div class="grid">
+    <div>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Substitution Examples</div>
+          <div class="card-tag">theory</div>
+        </div>
+        <div class="card-body">
+          <div class="terminal-block">
+            <pre>
+∫ cos x dx = sin x + C
+∫ e^{ax} dx = (1/a) e^{ax} + C
+∫ (ax + b)^n dx = (ax + b)^{n+1} / (a (n+1)) + C</pre>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Parts Examples</div>
+          <div class="card-tag">theory</div>
+        </div>
+        <div class="card-body">
+          <div class="terminal-block">
+            <pre>
+∫ x e^x dx = x e^x − ∫ e^x dx = (x − 1) e^x + C
+∫ x sin x dx = −x cos x + ∫ cos x dx = −x cos x + sin x + C
+∫ ln x dx = x ln x − x + C</pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SUMMARY TABLE -->
+  <div class="section-sep"></div>
+  <h2>Summary: Methods of Integration</h2>
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">Key Rules</div>
+      <div class="card-tag">reference</div>
+    </div>
+    <div class="card-body">
+      <table>
+        <thead>
+          <tr><th>Method</th><th>Formula</th><th>When to use</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Substitution</td>
+            <td>∫ f(φ(x)) φ'(x) dx = ∫ f(u) du</td>
+            <td>Chain rule in reverse</td>
+          </tr>
+          <tr>
+            <td>Parts</td>
+            <td>∫ u dv = uv − ∫ v du</td>
+            <td>Product of “nice” and “simplifying” functions</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- EXERCISES -->
+  <div class="section-sep"></div>
+  <h2>Exercises (Interactive Hints)</h2>
+
+  <div class="exercise">
+    <div class="exercise-title">Exercise 1 – Substitution</div>
+    <p>Use substitution to evaluate ∫₀^{π/2} cos x dx.</p>
+    <button class="hint-btn" data-hint="hint1">Show hint</button>
+    <div id="hint1" class="hint">
+      Let u = sin x, du = cos x dx. Then ∫ cos x dx = ∫ du.
+    </div>
+  </div>
+
+  <div class="exercise">
+    <div class="exercise-title">Exercise 2 – Parts</div>
+    <p>Use parts to compute ∫₀¹ x e^x dx and compare with the explorer.</p>
+    <button class="hint-btn" data-hint="hint2">Show hint</button>
+    <div id="hint2" class="hint">
+      Take u = x, dv = e^x dx ⇒ du = dx, v = e^x.
+    </div>
+  </div>
+
+  <div class="exercise">
+    <div class="exercise-title">Exercise 3 – ln x</div>
+    <p>Use parts with u = ln x, dv = dx to derive ∫ ln x dx.</p>
+    <button class="hint-btn" data-hint="hint3">Show hint</button>
+    <div id="hint3" class="hint">
+      u = ln x, dv = dx ⇒ du = (1/x) dx, v = x.
+    </div>
+  </div>
+</div>
+
+<script>
+  // --- Variable-safe function builder (Option C) ---
+  function buildSafeFunction(expr, variableName) {
+    let e = expr.replace(/\^/g, "**");
+    e = e.trim();
+
+    const funcs = ["sin","cos","tan","exp","log","sqrt","abs","asin","acos","atan"];
+    funcs.forEach(fn => {
+      e = e.replace(new RegExp("Math\\." + fn + "\\(", "g"), "__MATH__" + fn + "(");
+    });
+    funcs.forEach(fn => {
+      e = e.replace(new RegExp("\\b" + fn + "\\(", "g"), "Math." + fn + "(");
+    });
+    funcs.forEach(fn => {
+      e = e.replace(new RegExp("__MATH__" + fn + "\\(", "g"), "Math." + fn + "(");
+    });
+
+    const varList = ["x","t","u","v","y","z"];
+    varList.forEach(v => {
+      if (v !== variableName) {
+        e = e.replace(new RegExp("\\b" + v + "\\b", "g"), variableName);
+      }
+    });
+
+    return new Function(variableName, "return " + e + ";");
+  }
+
+  function numericIntegral(f, a, b, N) {
+    if (N < 1) N = 1;
+    const h = (b - a) / N;
+    let sum = 0;
+    for (let i = 0; i <= N; i++) {
+      const x = a + i * h;
+      const w = (i === 0 || i === N) ? 0.5 : 1;
+      sum += w * f(x);
+    }
+    return sum * h;
+  }
+
+  // --- Substitution Explorer ---
+  const subIntegrand = document.getElementById("sub-integrand");
+  const subPhi = document.getElementById("sub-phi");
+  const subA = document.getElementById("sub-a");
+  const subB = document.getElementById("sub-b");
+  const subBtn = document.getElementById("sub-btn");
+  const subOutput = document.getElementById("sub-output");
+
+  subBtn.addEventListener("click", () => {
+    subOutput.classList.remove("error");
+    try {
+      const fExpr = subIntegrand.value;
+      const phiExpr = subPhi.value;
+      const a = parseFloat(subA.value);
+      const b = parseFloat(subB.value);
+      if (!isFinite(a) || !isFinite(b) || a >= b) throw new Error("Invalid [a, b]");
+
+      const f = buildSafeFunction(fExpr, "x");
+      const phi = buildSafeFunction(phiExpr, "x");
+
+      // numeric ∫_a^b f(x) dx
+      const Fnum = numericIntegral(f, a, b, 2000);
+
+      // attempt u-substitution numerically:
+      // u = φ(x), du = φ'(x) dx
+      // approximate φ'(x) with symmetric difference
+      function fSub(x) {
+        const h = 1e-5 * (1 + Math.abs(x));
+        const u = phi(x);
+        const up = phi(x + h);
+        const um = phi(x - h);
+        const dupdx = (up - um) / (2*h);
+        return buildSafeFunction(fExpr, "u")(u) * dupdx;
+      }
+      const Fsub = numericIntegral(fSub, a, b, 2000);
+
+      subOutput.textContent =
+        "Integrand f(x) = " + fExpr +
+        "\nSubstitution u = " + phiExpr +
+        "\nNumeric ∫ₐᵇ f(x) dx ≈ " + Fnum +
+        "\nNumeric ∫ₐᵇ f(φ(x)) φ'(x) dx (via u-sub) ≈ " + Fsub +
+        "\nDifference ≈ " + (Fnum - Fsub);
+    } catch (err) {
+      subOutput.textContent = "Error: " + err.message;
+      subOutput.classList.add("error");
+    }
+  });
+
+  // --- Integration by Parts Explorer ---
+  const partsU = document.getElementById("parts-u");
+  const partsVp = document.getElementById("parts-vp");
+  const partsA = document.getElementById("parts-a");
+  const partsB = document.getElementById("parts-b");
+  const partsBtn = document.getElementById("parts-btn");
+  const partsOutput = document.getElementById("parts-output");
+
+  partsBtn.addEventListener("click", () => {
+    partsOutput.classList.remove("error");
+    try {
+      const uExpr = partsU.value;
+      const vpExpr = partsVp.value;
+      const a = parseFloat(partsA.value);
+      const b = parseFloat(partsB.value);
+      if (!isFinite(a) || !isFinite(b) || a >= b) throw new Error("Invalid [a, b]");
+
+      const u = buildSafeFunction(uExpr, "x");
+      const vp = buildSafeFunction(vpExpr, "x");
+
+      // numeric ∫_a^b u(x) v'(x) dx
+      function integrand(x) {
+        return u(x) * vp(x);
+      }
+      const I_num = numericIntegral(integrand, a, b, 2000);
+
+      // approximate du/dx and v(x)
+      function du(x) {
+        const h = 1e-5 * (1 + Math.abs(x));
+        return (u(x + h) - u(x - h)) / (2*h);
+      }
+      function v(x) {
+        return numericIntegral(vp, 0, x, 800); // v(0) = 0 convention
+      }
+
+      const uv_a = u(a) * v(a);
+      const uv_b = u(b) * v(b);
+      function vdu(x) {
+        return v(x) * du(x);
+      }
+      const int_vdu = numericIntegral(vdu, a, b, 2000);
+      const I_parts = uv_b - uv_a - int_vdu;
+
+      partsOutput.textContent =
+        "u(x) = " + uExpr + ", v'(x) = " + vpExpr +
+        "\nNumeric ∫ₐᵇ u v' dx ≈ " + I_num +
+        "\nBy parts: uv|ₐᵇ − ∫ₐᵇ v du ≈ " + I_parts +
+        "\nDifference ≈ " + (I_num - I_parts);
+    } catch (err) {
+      partsOutput.textContent = "Error: " + err.message;
+      partsOutput.classList.add("error");
+    }
+  });
+
+  // Hints
+  document.querySelectorAll(".hint-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const id = btn.getAttribute("data-hint");
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.style.display = el.style.display === "block" ? "none" : "block";
+    });
+  });
+
+  // Initial runs
+  subBtn.click();
+  partsBtn.click();
+</script>
+</body>
+</html>

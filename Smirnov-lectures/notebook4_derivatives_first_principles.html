@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Notebook 4 – Derivatives: First Principles (Terminal Style)</title>
+<style>
+  :root {
+    --bg: #050608;
+    --bg-alt: #0b0f14;
+    --accent: #00ff7f;
+    --accent-soft: #00ff7f33;
+    --text: #e5ffe5;
+    --muted: #7fbf7f;
+    --danger: #ff4d4d;
+    --border: #1a2a1a;
+    --font-mono: "Fira Code", "JetBrains Mono", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 0;
+    background: radial-gradient(circle at top, #101820 0, #050608 55%);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 14px;
+  }
+  .scanline {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0.15),
+      rgba(0, 0, 0, 0.15) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+    mix-blend-mode: soft-light;
+    opacity: 0.4;
+    z-index: 999;
+  }
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 20px 16px 60px;
+  }
+  .header {
+    border: 1px solid var(--border);
+    background: linear-gradient(135deg, #050608 0, #0b0f14 60%, #050608 100%);
+    padding: 16px 18px;
+    margin-bottom: 18px;
+    box-shadow: 0 0 18px #00ff7f22;
+  }
+  .header-title {
+    color: var(--accent);
+    font-size: 20px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  .header-sub {
+    color: var(--muted);
+    margin-top: 4px;
+  }
+  .badge {
+    display: inline-block;
+    border: 1px solid var(--accent-soft);
+    color: var(--accent);
+    padding: 2px 8px;
+    margin-top: 8px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: minmax(0, 2.1fr) minmax(0, 1.4fr);
+    gap: 16px;
+  }
+  @media (max-width: 900px) {
+    .grid { grid-template-columns: 1fr; }
+  }
+  .card {
+    border: 1px solid var(--border);
+    background: radial-gradient(circle at top left, #101820 0, #050608 55%);
+    padding: 14px 14px 16px;
+    position: relative;
+    overflow: hidden;
+  }
+  .card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, transparent 0, #00ff7f11 40%, transparent 100%);
+    opacity: 0.4;
+    pointer-events: none;
+  }
+  .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  .card-title {
+    color: var(--accent);
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+  }
+  .card-tag {
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .card-body {
+    position: relative;
+    z-index: 1;
+  }
+  h2 {
+    color: var(--accent);
+    font-size: 15px;
+    margin: 18px 0 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+  }
+  p {
+    margin: 6px 0;
+    color: var(--text);
+  }
+  .quote {
+    border-left: 2px solid var(--accent-soft);
+    padding-left: 10px;
+    margin: 8px 0;
+    color: var(--muted);
+    font-size: 13px;
+  }
+  .inline-code {
+    background: #0b0f14;
+    border: 1px solid var(--border);
+    padding: 1px 4px;
+    border-radius: 2px;
+    font-size: 12px;
+  }
+  .terminal-block {
+    background: #050608;
+    border: 1px solid var(--border);
+    padding: 8px 10px;
+    font-size: 12px;
+    overflow-x: auto;
+    position: relative;
+  }
+  .terminal-block::before {
+    content: ">>> ";
+    color: var(--accent);
+    position: absolute;
+    left: 8px;
+    top: 6px;
+  }
+  .terminal-block pre {
+    margin: 0;
+    padding-left: 26px;
+    white-space: pre;
+  }
+  .label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+  input {
+    background: #050608;
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 4px 6px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    width: 100%;
+  }
+  input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent-soft);
+  }
+  button {
+    background: #050608;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    padding: 4px 10px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    cursor: pointer;
+  }
+  button:hover {
+    background: var(--accent-soft);
+  }
+  button:active {
+    transform: translateY(1px);
+  }
+  .row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+  .row > * { flex: 1; }
+  .output {
+    font-size: 13px;
+    color: var(--accent);
+    margin-top: 4px;
+    min-height: 18px;
+    white-space: pre-wrap;
+  }
+  .output.error {
+    color: var(--danger);
+  }
+  canvas {
+    width: 100%;
+    height: 260px;
+    background: #050608;
+    border: 1px solid var(--border);
+  }
+  .axis-label {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+  .section-sep {
+    margin: 22px 0 10px;
+    border-top: 1px dashed var(--border);
+  }
+  .exercise {
+    border: 1px dashed var(--border);
+    padding: 8px 10px;
+    margin: 6px 0;
+    background: #050608;
+  }
+  .exercise-title {
+    color: var(--accent);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    margin-bottom: 4px;
+  }
+  .hint-btn {
+    border-color: var(--border);
+    color: var(--muted);
+    font-size: 10px;
+    padding: 2px 6px;
+  }
+  .hint {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 4px;
+    display: none;
+  }
+</style>
+</head>
+<body>
+<div class="scanline"></div>
+<div class="container">
+  <div class="header">
+    <div class="header-title">Notebook 4 :: Derivatives – First Principles</div>
+    <div class="header-sub">Smirnov – A Course of Higher Mathematics, Vol. 1 – Increment, Tangent, Derivative</div>
+    <div class="badge">Mode: Offline · HTML/JS · Terminal/Hacker Theme</div>
+  </div>
+
+  <div class="grid">
+    <!-- THEORY COLUMN -->
+    <div>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Increment & Difference Quotient</div>
+          <div class="card-tag">theory</div>
+        </div>
+        <div class="card-body">
+          <p>Given a function <span class="inline-code">y = f(x)</span>, the increment of <span class="inline-code">x</span> is</p>
+          <div class="terminal-block">
+            <pre>
+Δx = h</pre>
+          </div>
+          <p>The corresponding increment of <span class="inline-code">y</span> is</p>
+          <div class="terminal-block">
+            <pre>
+Δy = f(x + h) − f(x)</pre>
+          </div>
+          <p>The <strong>difference quotient</strong> is</p>
+          <div class="terminal-block">
+            <pre>
+(f(x + h) − f(x)) / h</pre>
+          </div>
+          <p>It represents the slope of the secant line through the points <span class="inline-code">(x, f(x))</span> and <span class="inline-code">(x + h, f(x + h))</span>.</p>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:14px;">
+        <div class="card-header">
+          <div class="card-title">Definition of the Derivative</div>
+          <div class="card-tag">theory</div>
+        </div>
+        <div class="card-body">
+          <p>The derivative of <span class="inline-code">f</span> at <span class="inline-code">x</span> is the limit of the difference quotient as <span class="inline-code">h → 0</span>:</p>
+          <div class="terminal-block">
+            <pre>
+f'(x) = lim_{h→0} (f(x + h) − f(x)) / h</pre>
+          </div>
+          <p>Geometrically, <span class="inline-code">f'(x)</span> is the slope of the <strong>tangent line</strong> to the graph at the point <span class="inline-code">(x, f(x))</span>.</p>
+          <div class="quote">
+            “The derivative gives the instantaneous rate of change of the function with respect to the variable.”
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:14px;">
+        <div class="card-header">
+          <div class="card-title">Example: f(x) = x²</div>
+          <div class="card-tag">theory</div>
+        </div>
+        <div class="card-body">
+          <p>For <span class="inline-code">f(x) = x²</span>, we have</p>
+          <div class="terminal-block">
+            <pre>
+(f(x + h) − f(x)) / h
+= ((x + h)² − x²) / h
+= (x² + 2xh + h² − x²) / h
+= (2xh + h²) / h
+= 2x + h</pre>
+          </div>
+          <p>Taking the limit as <span class="inline-code">h → 0</span> gives</p>
+          <div class="terminal-block">
+            <pre>
+f'(x) = 2x</pre>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- INTERACTIVE COLUMN -->
+    <div>
+      <!-- DIFFERENCE QUOTIENT EXPLORER -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Difference Quotient Explorer</div>
+          <div class="card-tag">interactive</div>
+        </div>
+        <div class="card-body">
+          <p class="label">1. Define f(x)</p>
+          <input id="func-input" value="x*x" />
+          <p style="font-size:11px;color:var(--muted);margin-top:2px;">
+            Example: <span class="inline-code">x*x</span>, <span class="inline-code">x*x*x</span>, <span class="inline-code">sin(x)</span>, etc.
+          </p>
+          <div class="row" style="margin-top:8px;">
+            <div>
+              <span class="label">2. Point x</span>
+              <input id="x-input" value="1" />
+            </div>
+            <div>
+              <span class="label">Initial h</span>
+              <input id="h-input" value="0.5" />
+            </div>
+          </div>
+          <button id="dq-btn">Compute Δy, quotient</button>
+          <div id="dq-output" class="output"></div>
+        </div>
+      </div>
+
+      <!-- NUMERIC DERIVATIVE (H → 0) -->
+      <div class="card" style="margin-top:14px;">
+        <div class="card-header">
+          <div class="card-title">Numeric Derivative via Limits</div>
+          <div class="card-tag">interactive</div>
+        </div>
+        <div class="card-body">
+          <p class="label">Approximate f'(x) by shrinking h</p>
+          <div class="row">
+            <div>
+              <span class="label"># of steps</span>
+              <input id="steps-input" value="6" />
+            </div>
+          </div>
+          <button id="deriv-btn">Compute table of quotients</button>
+          <div id="deriv-table"></div>
+        </div>
+      </div>
+
+      <!-- GRAPH + SECANT/TANGENT -->
+      <div class="card" style="margin-top:14px;">
+        <div class="card-header">
+          <div class="card-title">Graph with Secant & Tangent</div>
+          <div class="card-tag">interactive</div>
+        </div>
+        <div class="card-body">
+          <p class="label">Visualize secant (finite h) and tangent (h → 0)</p>
+          <div class="row">
+            <div>
+              <span class="label">Plot window radius</span>
+              <input id="window-radius" value="2" />
+            </div>
+          </div>
+          <button id="plot-btn">Plot graph & lines</button>
+          <canvas id="plot-canvas" width="500" height="260"></canvas>
+          <div class="axis-label">Green: f(x) · Yellow: secant · Magenta: tangent (numeric)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EXERCISES -->
+  <div class="section-sep"></div>
+  <h2>Exercises (Interactive Hints)</h2>
+
+  <div class="exercise">
+    <div class="exercise-title">Exercise 1 – Derivative of x² at x = 3</div>
+    <p>Use the numeric derivative tool with <span class="inline-code">f(x) = x²</span> at <span class="inline-code">x = 3</span>. What value does the quotient approach?</p>
+    <button class="hint-btn" data-hint="hint1">Show hint</button>
+    <div id="hint1" class="hint">
+      Analytically, <span class="inline-code">f'(x) = 2x</span>, so <span class="inline-code">f'(3) = 6</span>. Check that the quotients approach 6.
+    </div>
+  </div>
+
+  <div class="exercise">
+    <div class="exercise-title">Exercise 2 – Derivative of x³</div>
+    <p>Take <span class="inline-code">f(x) = x³</span>. Use the numeric derivative at several points (x = 0, 1, 2). Guess a formula for <span class="inline-code">f'(x)</span>.</p>
+    <button class="hint-btn" data-hint="hint2">Show hint</button>
+    <div id="hint2" class="hint">
+      You should see values close to <span class="inline-code">0</span>, <span class="inline-code">3</span>, <span class="inline-code">12</span>. This suggests <span class="inline-code">f'(x) = 3x²</span>.
+    </div>
+  </div>
+
+  <div class="exercise">
+    <div class="exercise-title">Exercise 3 – Tangent to sin(x)</div>
+    <p>Let <span class="inline-code">f(x) = sin(x)</span>. Use the tools at <span class="inline-code">x = 0</span> and <span class="inline-code">x = π/4</span>. What are the slopes of the tangents?</p>
+    <button class="hint-btn" data-hint="hint3">Show hint</button>
+    <div id="hint3" class="hint">
+      The derivative of <span class="inline-code">sin(x)</span> is <span class="inline-code">cos(x)</span>. So slopes are <span class="inline-code">cos(0) = 1</span> and <span class="inline-code">cos(π/4) = √2/2</span>.
+    </div>
+  </div>
+
+  <div class="exercise">
+    <div class="exercise-title">Exercise 4 – Secant vs Tangent</div>
+    <p>For <span class="inline-code">f(x) = x²</span> at <span class="inline-code">x = 1</span>, vary <span class="inline-code">h</span> in the difference quotient explorer. Watch how the secant line approaches the tangent.</p>
+    <button class="hint-btn" data-hint="hint4">Show hint</button>
+    <div id="hint4" class="hint">
+      As <span class="inline-code">h</span> gets smaller, the secant slope approaches <span class="inline-code">2</span>, which is the tangent slope at x = 1.
+    </div>
+  </div>
+</div>
+
+<script>
+  // --- Utility: parse expression ---
+  function buildFunction(expr) {
+    let e = expr.replace(/\^/g, "**");
+    const funcs = ["sin","cos","tan","exp","log","sqrt","abs"];
+    funcs.forEach(fn => {
+      e = e.replace(new RegExp("\\b" + fn + "\\(", "g"), "Math." + fn + "(");
+    });
+    return new Function("x", "return " + e + ";");
+  }
+
+  const funcInput = document.getElementById("func-input");
+  const xInput = document.getElementById("x-input");
+  const hInput = document.getElementById("h-input");
+  const dqBtn = document.getElementById("dq-btn");
+  const dqOutput = document.getElementById("dq-output");
+
+  // Difference quotient explorer
+  dqBtn.addEventListener("click", () => {
+    dqOutput.classList.remove("error");
+    try {
+      const f = buildFunction(funcInput.value);
+      const x = parseFloat(xInput.value);
+      const h = parseFloat(hInput.value);
+      if (!isFinite(x) || !isFinite(h) || h === 0) {
+        throw new Error("x and h must be numbers, h ≠ 0");
+      }
+      const fx = f(x);
+      const fxh = f(x + h);
+      const dy = fxh - fx;
+      const q = dy / h;
+      dqOutput.textContent =
+        "f(x)   = " + fx +
+        "\nf(x+h) = " + fxh +
+        "\nΔy     = " + dy +
+        "\nΔx     = h = " + h +
+        "\nQuotient (Δy/Δx) = " + q;
+    } catch (err) {
+      dqOutput.textContent = "Error: " + err.message;
+      dqOutput.classList.add("error");
+    }
+  });
+
+  // Numeric derivative table
+  const stepsInput = document.getElementById("steps-input");
+  const derivBtn = document.getElementById("deriv-btn");
+  const derivTableDiv = document.getElementById("deriv-table");
+
+  derivBtn.addEventListener("click", () => {
+    derivTableDiv.innerHTML = "";
+    try {
+      const f = buildFunction(funcInput.value);
+      const x = parseFloat(xInput.value);
+      const steps = parseInt(stepsInput.value, 10);
+      if (!isFinite(x) || !isFinite(steps) || steps < 2) {
+        throw new Error("Invalid x or steps");
+      }
+      const base = 10;
+      let html = "<table><thead><tr><th>k</th><th>h</th><th>quotient</th></tr></thead><tbody>";
+      for (let k = 1; k <= steps; k++) {
+        const h = Math.pow(base, -k);
+        let q;
+        try {
+          q = (f(x + h) - f(x)) / h;
+        } catch {
+          q = NaN;
+        }
+        html += "<tr><td>" + k + "</td><td>" + h.toExponential(4) + "</td><td>" +
+                (isFinite(q) ? q.toExponential(6) : "NaN") + "</td></tr>";
+      }
+      html += "</tbody></table>";
+      derivTableDiv.innerHTML = html;
+    } catch (err) {
+      derivTableDiv.innerHTML = "<div class='output error'>Error: " + err.message + "</div>";
+    }
+  });
+
+  // Graph with secant & tangent
+  const windowRadiusInput = document.getElementById("window-radius");
+  const plotBtn = document.getElementById("plot-btn");
+  const canvas = document.getElementById("plot-canvas");
+  const ctx = canvas.getContext("2d");
+
+  function drawAxes(ctx, canvas, xmin, xmax, ymin, ymax) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "#050608";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.strokeStyle = "#1a2a1a";
+    ctx.lineWidth = 1;
+
+    const gridCount = 10;
+    for (let i = 0; i <= gridCount; i++) {
+      const t = i / gridCount;
+      const x = t * canvas.width;
+      const y = t * canvas.height;
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, canvas.height);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(canvas.width, y);
+      ctx.stroke();
+    }
+
+    ctx.strokeStyle = "#00ff7f";
+    ctx.lineWidth = 1.2;
+
+    if (ymin < 0 && ymax > 0) {
+      const y0 = canvas.height * (1 - (0 - ymin) / (ymax - ymin));
+      ctx.beginPath();
+      ctx.moveTo(0, y0);
+      ctx.lineTo(canvas.width, y0);
+      ctx.stroke();
+    }
+
+    if (xmin < 0 && xmax > 0) {
+      const x0 = canvas.width * (0 - xmin) / (xmax - xmin);
+      ctx.beginPath();
+      ctx.moveTo(x0, 0);
+      ctx.lineTo(x0, canvas.height);
+      ctx.stroke();
+    }
+  }
+
+  plotBtn.addEventListener("click", () => {
+    try {
+      const f = buildFunction(funcInput.value);
+      const x0 = parseFloat(xInput.value);
+      const r = parseFloat(windowRadiusInput.value);
+      if (!isFinite(x0) || !isFinite(r) || r <= 0) {
+        throw new Error("Invalid x or radius");
+      }
+      const xmin = x0 - r;
+      const xmax = x0 + r;
+
+      const N = 400;
+      const xs = [];
+      const ys = [];
+      for (let i = 0; i < N; i++) {
+        const t = i / (N - 1);
+        const x = xmin + t * (xmax - xmin);
+        let y;
+        try { y = f(x); } catch { y = NaN; }
+        xs.push(x);
+        ys.push(isFinite(y) ? y : NaN);
+      }
+
+      const finiteYs = ys.filter(v => isFinite(v));
+      if (finiteYs.length === 0) throw new Error("No finite values to plot");
+      let ymin = Math.min(...finiteYs);
+      let ymax = Math.max(...finiteYs);
+      if (ymin === ymax) {
+        ymin -= 1;
+        ymax += 1;
+      }
+
+      drawAxes(ctx, canvas, xmin, xmax, ymin, ymax);
+
+      // plot f(x)
+      ctx.strokeStyle = "#00ff7f";
+      ctx.lineWidth = 1.4;
+      ctx.beginPath();
+      let started = false;
+      for (let i = 0; i < xs.length; i++) {
+        const x = xs[i];
+        const y = ys[i];
+        if (!isFinite(y)) { started = false; continue; }
+        const px = (x - xmin) / (xmax - xmin) * canvas.width;
+        const py = (1 - (y - ymin) / (ymax - ymin)) * canvas.height;
+        if (!started) {
+          ctx.moveTo(px, py);
+          started = true;
+        } else {
+          ctx.lineTo(px, py);
+        }
+      }
+      ctx.stroke();
+
+      // secant line with current h
+      const h = parseFloat(hInput.value);
+      if (isFinite(h) && h !== 0) {
+        const fx0 = f(x0);
+        const fxh = f(x0 + h);
+        const m_sec = (fxh - fx0) / h;
+        ctx.strokeStyle = "#ffff66";
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        for (let i = 0; i < xs.length; i++) {
+          const x = xs[i];
+          const y = fx0 + m_sec * (x - x0);
+          const px = (x - xmin) / (xmax - xmin) * canvas.width;
+          const py = (1 - (y - ymin) / (ymax - ymin)) * canvas.height;
+          if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        }
+        ctx.stroke();
+      }
+
+      // tangent line via small h
+      const h_t = 1e-4;
+      const fx0 = f(x0);
+      const fxh_t = f(x0 + h_t);
+      const m_tan = (fxh_t - fx0) / h_t;
+      ctx.strokeStyle = "#ff4dff";
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      for (let i = 0; i < xs.length; i++) {
+        const x = xs[i];
+        const y = fx0 + m_tan * (x - x0);
+        const px = (x - xmin) / (xmax - xmin) * canvas.width;
+        const py = (1 - (y - ymin) / (ymax - ymin)) * canvas.height;
+        if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+      }
+      ctx.stroke();
+    } catch (err) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = "#050608";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = "#ff4d4d";
+      ctx.font = "12px " + getComputedStyle(document.body).fontFamily;
+      ctx.fillText("Error: " + err.message, 10, 20);
+    }
+  });
+
+  // Hints
+  document.querySelectorAll(".hint-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const id = btn.getAttribute("data-hint");
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.style.display = el.style.display === "block" ? "none" : "block";
+    });
+  });
+
+  // Initial run
+  dqBtn.click();
+  derivBtn.click();
+  plotBtn.click();
+</script>
+</body>
+</html>
+

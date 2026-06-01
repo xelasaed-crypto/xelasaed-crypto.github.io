@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Notebook 8 – Optimization Problems (Terminal Style)</title>
+<style>
+  :root {
+    --bg: #050608;
+    --bg-alt: #0b0f14;
+    --accent: #00ff7f;
+    --accent-soft: #00ff7f33;
+    --text: #e5ffe5;
+    --muted: #7fbf7f;
+    --danger: #ff4d4d;
+    --border: #1a2a1a;
+    --font-mono: "Fira Code", "JetBrains Mono", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 0;
+    background: radial-gradient(circle at top, #101820 0, #050608 55%);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 14px;
+  }
+  .scanline {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0.15),
+      rgba(0, 0, 0, 0.15) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+    mix-blend-mode: soft-light;
+    opacity: 0.4;
+    z-index: 999;
+  }
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 20px 16px 60px;
+  }
+  .header {
+    border: 1px solid var(--border);
+    background: linear-gradient(135deg, #050608 0, #0b0f14 60%, #050608 100%);
+    padding: 16px 18px;
+    margin-bottom: 18px;
+    box-shadow: 0 0 18px #00ff7f22;
+  }
+  .header-title {
+    color: var(--accent);
+    font-size: 20px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  .header-sub {
+    color: var(--muted);
+    margin-top: 4px;
+  }
+  .badge {
+    display: inline-block;
+    border: 1px solid var(--accent-soft);
+    color: var(--accent);
+    padding: 2px 8px;
+    margin-top: 8px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: minmax(0, 2.1fr) minmax(0, 1.4fr);
+    gap: 16px;
+  }
+  @media (max-width: 900px) {
+    .grid { grid-template-columns: 1fr; }
+  }
+  .card {
+    border: 1px solid var(--border);
+    background: radial-gradient(circle at top left, #101820 0, #050608 55%);
+    padding: 14px 14px 16px;
+    position: relative;
+    overflow: hidden;
+  }
+  .card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, transparent 0, #00ff7f11 40%, transparent 100%);
+    opacity: 0.4;
+    pointer-events: none;
+  }
+  .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  .card-title {
+    color: var(--accent);
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+  }
+  .card-tag {
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .card-body {
+    position: relative;
+    z-index: 1;
+  }
+  h2 {
+    color: var(--accent);
+    font-size: 15px;
+    margin: 18px 0 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+  }
+  p {
+    margin: 6px 0;
+    color: var(--text);
+  }
+  .quote {
+    border-left: 2px solid var(--accent-soft);
+    padding-left: 10px;
+    margin: 8px 0;
+    color: var(--muted);
+    font-size: 13px;
+  }
+  .inline-code {
+    background: #0b0f14;
+    border: 1px solid var(--border);
+    padding: 1px 4px;
+    border-radius: 2px;
+    font-size: 12px;
+  }
+  .terminal-block {
+    background: #050608;
+    border: 1px solid var(--border);
+    padding: 8px 10px;
+    font-size: 12px;
+    overflow-x: auto;
+    position: relative;
+  }
+  .terminal-block::before {
+    content: ">>> ";
+    color: var(--accent);
+    position: absolute;
+    left: 8px;
+    top: 6px;
+  }
+  .terminal-block pre {
+    margin: 0;
+    padding-left: 26px;
+    white-space: pre;
+  }
+  .label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+  input, select {
+    background: #050608;
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 4px 6px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    width: 100%;
+  }
+  input:focus, select:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent-soft);
+  }
+  button {
+    background: #050608;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    padding: 4px 10px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    cursor: pointer;
+  }
+  button:hover {
+    background: var(--accent-soft);
+  }
+  button:active {
+    transform: translateY(1px);
+  }
+  .row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+  .row > * { flex: 1; }
+  .output {
+    font-size: 13px;
+    color: var(--accent);
+    margin-top: 4px;
+    min-height: 18px;
+    white-space: pre-wrap;
+  }
+  .output.error {
+    color: var(--danger);
+  }
+  canvas {
+    width: 100%;
+    height: 260px;
+    background: #050608;
+    border: 1px solid var(--border);
+  }
+  .axis-label {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+  .section-sep {
+    margin: 22px 0 10px;
+    border-top: 1px dashed var(--border);
+  }
+  .exercise {
+    border: 1px dashed var(--border);
+    padding: 8px 10px;
+    margin: 6px 0;
+    background: #050608;
+  }
+  .exercise-title {
+    color: var(--accent);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    margin-bottom: 4px;
+  }
+  .hint-btn {
+    border-color: var(--border);
+    color: var(--muted);
+    font-size: 10px;
+    padding: 2px 6px;
+  }
+  .hint {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 4px;
+    display: none;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    margin-top: 6px;
+  }
+  th, td {
+    border: 1px solid var(--border);
+    padding: 3px 4px;
+    text-align: left;
+  }
+  th {
+    background: #0b0f14;
+    color: var(--muted);
+  }
+</style>
+</head>
+<body>
+<div class="scanline"></div>
+<div class="container">
+  <div class="header">
+    <div class="header-title">Notebook 8 :: Optimization Problems (Applied Extrema)</div>
+    <div class="header-sub">Smirnov – A Course of Higher Mathematics, Vol. 1 – Applications of maxima and minima</div>
+    <div class="badge">Mode: Offline · HTML/JS · Terminal/Hacker Theme</div>
+  </div>
+
+  <div class="grid">
+    <!-- THEORY COLUMN -->
+    <div>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">General Strategy</div>
+          <div class="card-tag">theory</div>
+        </div>
+        <div class="card-body">
+          <p>Many applied problems reduce to optimizing a function on an interval.</p>
+          <div class="terminal-block">
+            <pre>
+1. Translate the problem into a function f(x)
+2. Determine the domain (constraints)
+3. Find critical points in the domain
+4. Evaluate f at critical points and endpoints
+5. Choose the maximum or minimum value</pre>
+          </div>
+          <div class="quote">
+            “Optimization is just calculus plus a good translation from words to formulas.”
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:14px;">
+        <div class="card-header">
+          <div class="card-title">Example: Rectangle with Fixed Perimeter</div>
+          <div class="card-tag">theory</div>
+        </div>
+        <div class="card-body">
+          <p>Perimeter <span class="inline-code">P</span> fixed, rectangle sides <span class="inline-code">x</span> and <span class="inline-code">y</span>.</p>
+          <div class="terminal-block">
+            <pre>
+P = 2x + 2y  ⇒  y = P/2 − x
+Area: A(x) = x y = x(P/2 − x)</pre>
+          </div>
+          <p>We maximize <span class="inline-code">A(x)</span> on <span class="inline-code">0 &lt; x &lt; P/2</span>.</p>
+          <div class="terminal-block">
+            <pre>
+A'(x) = P/2 − 2x = 0  ⇒  x = P/4
+Then y = P/4  ⇒  square gives maximal area.</pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:14px;">
+        <div class="card-header">
+          <div class="card-title">Example: Box with No Lid</div>
+          <div class="card-tag">theory</div>
+        </div>
+        <div class="card-body">
+          <p>Square base side <span class="inline-code">x</span>, height <span class="inline-code">h</span>, volume <span class="inline-code">V</span> fixed.</p>
+          <div class="terminal-block">
+            <pre>
+V = x² h  ⇒  h = V / x²
+Surface (no lid): S(x) = x² + 4 x h
+= x² + 4x (V / x²) = x² + 4V / x</pre>
+          </div>
+          <p>We minimize <span class="inline-code">S(x)</span> for <span class="inline-code">x &gt; 0</span>.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- INTERACTIVE COLUMN -->
+    <div>
+      <!-- RECTANGLE OPTIMIZER -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Rectangle with Fixed Perimeter</div>
+          <div class="card-tag">interactive</div>
+        </div>
+        <div class="card-body">
+          <p class="label">Perimeter P</p>
+          <input id="rect-P" value="20" />
+          <button id="rect-btn" style="margin-top:8px;">Compute optimal rectangle</button>
+          <div id="rect-output" class="output"></div>
+        </div>
+      </div>
+
+      <!-- BOX OPTIMIZER -->
+      <div class="card" style="margin-top:14px;">
+        <div class="card-header">
+          <div class="card-title">Open Box with Fixed Volume</div>
+          <div class="card-tag">interactive</div>
+        </div>
+        <div class="card-body">
+          <p class="label">Volume V</p>
+          <input id="box-V" value="100" />
+          <button id="box-btn" style="margin-top:8px;">Minimize surface area</button>
+          <div id="box-output" class="output"></div>
+        </div>
+      </div>
+
+      <!-- CUSTOM OPTIMIZATION -->
+      <div class="card" style="margin-top:14px;">
+        <div class="card-header">
+          <div class="card-title">Custom Optimization on [a, b]</div>
+          <div class="card-tag">interactive</div>
+        </div>
+        <div class="card-body">
+          <p class="label">Objective f(x)</p>
+          <input id="opt-f" value="x^3 - 3*x" />
+          <div class="row" style="margin-top:8px;">
+            <div>
+              <span class="label">a</span>
+              <input id="opt-a" value="-3" />
+            </div>
+            <div>
+              <span class="label">b</span>
+              <input id="opt-b" value="3" />
+            </div>
+          </div>
+          <button id="opt-btn">Find min & max on [a, b]</button>
+          <div id="opt-output" class="output"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- GRAPHICAL VIEW -->
+  <div class="section-sep"></div>
+  <h2>Graph of Objective and Optimal Points</h2>
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">Plot f(x) and Mark Min/Max</div>
+      <div class="card-tag">interactive</div>
+    </div>
+    <div class="card-body">
+      <p class="label">Use the same f(x), [a, b] as in Custom Optimization</p>
+      <button id="plot-btn">Plot and mark extrema</button>
+      <canvas id="plot-canvas" width="500" height="260"></canvas>
+      <div class="axis-label">Green: f(x) · Yellow: max · Cyan: min</div>
+    </div>
+  </div>
+
+  <!-- SUMMARY TABLE -->
+  <div class="section-sep"></div>
+  <h2>Typical Optimization Patterns</h2>
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">Patterns</div>
+      <div class="card-tag">reference</div>
+    </div>
+    <div class="card-body">
+      <table>
+        <thead>
+          <tr><th>Problem Type</th><th>Objective</th><th>Constraint</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Max area (fixed perimeter)</td><td>Area A(x)</td><td>Perimeter relation</td></tr>
+          <tr><td>Min surface (fixed volume)</td><td>Surface S(x)</td><td>Volume relation</td></tr>
+          <tr><td>Shortest distance</td><td>Distance D(x)</td><td>Geometric relation</td></tr>
+          <tr><td>Max profit / min cost</td><td>Profit/Cost P(x)</td><td>Production limits</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- EXERCISES -->
+  <div class="section-sep"></div>
+  <h2>Exercises (Interactive Hints)</h2>
+
+  <div class="exercise">
+    <div class="exercise-title">Exercise 1 – Fixed Perimeter</div>
+    <p>For perimeter <span class="inline-code">P = 40</span>, use the rectangle tool. What are the optimal side lengths?</p>
+    <button class="hint-btn" data-hint="hint1">Show hint</button>
+    <div id="hint1" class="hint">
+      The optimal rectangle is a square: <span class="inline-code">x = y = P/4</span>.
+    </div>
+  </div>
+
+  <div class="exercise">
+    <div class="exercise-title">Exercise 2 – Open Box</div>
+    <p>For volume <span class="inline-code">V = 200</span>, use the box tool. What is the approximate optimal base side x?</p>
+    <button class="hint-btn" data-hint="hint2">Show hint</button>
+    <div id="hint2" class="hint">
+      Solve <span class="inline-code">S'(x) = 2x − 4V/x² = 0</span> ⇒ <span class="inline-code">x³ = 2V</span>.
+    </div>
+  </div>
+
+  <div class="exercise">
+    <div class="exercise-title">Exercise 3 – Cubic on Interval</div>
+    <p>Use the custom optimizer with <span class="inline-code">f(x) = x³ − 3x</span> on <span class="inline-code">[−3, 3]</span>. Where are the min and max?</p>
+    <button class="hint-btn" data-hint="hint3">Show hint</button>
+    <div id="hint3" class="hint">
+      Critical points from <span class="inline-code">f'(x) = 3x² − 3 = 0</span>, plus endpoints.
+    </div>
+  </div>
+
+  <div class="exercise">
+    <div class="exercise-title">Exercise 4 – Custom Problem</div>
+    <p>Invent your own objective <span class="inline-code">f(x)</span> and interval, and use the custom optimizer to explore.</p>
+    <button class="hint-btn" data-hint="hint4">Show hint</button>
+    <div id="hint4" class="hint">
+      Ensure the function is well-defined on [a, b]; then compare numeric results with analytic derivatives.
+    </div>
+  </div>
+</div>
+
+<script>
+  // --- Utility: parse expression (sin, cos, etc. without Math.) ---
+  function buildFunction(expr) {
+    let e = expr.replace(/\^/g, "**");
+    const funcs = ["sin","cos","tan","exp","log","sqrt","abs"];
+    funcs.forEach(fn => {
+      e = e.replace(new RegExp("Math\\." + fn + "\\(", "g"), "__MATH__" + fn + "(");
+    });
+    funcs.forEach(fn => {
+      e = e.replace(new RegExp("\\b" + fn + "\\(", "g"), "Math." + fn + "(");
+    });
+    funcs.forEach(fn => {
+      e = e.replace(new RegExp("__MATH__" + fn + "\\(", "g"), "Math." + fn + "(");
+    });
+    return new Function("x", "return " + e + ";");
+  }
+
+  function numericDerivative(f, x0) {
+    const h = 1e-5;
+    return (f(x0 + h) - f(x0 - h)) / (2*h);
+  }
+
+  // --- Rectangle optimizer ---
+  const rectP = document.getElementById("rect-P");
+  const rectBtn = document.getElementById("rect-btn");
+  const rectOutput = document.getElementById("rect-output");
+
+  rectBtn.addEventListener("click", () => {
+    rectOutput.classList.remove("error");
+    try {
+      const P = parseFloat(rectP.value);
+      if (!isFinite(P) || P <= 0) throw new Error("P must be positive");
+      const x = P / 4;
+      const y = P / 4;
+      const A = x * y;
+      rectOutput.textContent =
+        "Perimeter P = " + P +
+        "\nOptimal rectangle is a square:" +
+        "\nx = y = P/4 = " + x +
+        "\nMax area A = x*y = " + A;
+    } catch (err) {
+      rectOutput.textContent = "Error: " + err.message;
+      rectOutput.classList.add("error");
+    }
+  });
+
+  // --- Box optimizer (no lid) ---
+  const boxV = document.getElementById("box-V");
+  const boxBtn = document.getElementById("box-btn");
+  const boxOutput = document.getElementById("box-output");
+
+  boxBtn.addEventListener("click", () => {
+    boxOutput.classList.remove("error");
+    try {
+      const V = parseFloat(boxV.value);
+      if (!isFinite(V) || V <= 0) throw new Error("V must be positive");
+      // S(x) = x^2 + 4V/x, S'(x) = 2x - 4V/x^2 = 0 => x^3 = 2V
+      const x = Math.cbrt(2 * V);
+      const h = V / (x * x);
+      const S = x*x + 4*V/x;
+      boxOutput.textContent =
+        "Volume V = " + V +
+        "\nOptimal base side x ≈ " + x +
+        "\nHeight h = V / x² ≈ " + h +
+        "\nMin surface S(x) ≈ " + S;
+    } catch (err) {
+      boxOutput.textContent = "Error: " + err.message;
+      boxOutput.classList.add("error");
+    }
+  });
+
+  // --- Custom optimization on [a, b] ---
+  const optF = document.getElementById("opt-f");
+  const optA = document.getElementById("opt-a");
+  const optB = document.getElementById("opt-b");
+  const optBtn = document.getElementById("opt-btn");
+  const optOutput = document.getElementById("opt-output");
+
+  function findCriticalPointsOnInterval(f, a, b, samples) {
+    const xs = [];
+    const fp = [];
+    for (let i = 0; i < samples; i++) {
+      const t = i / (samples - 1);
+      const x = a + t * (b - a);
+      xs.push(x);
+      fp.push(numericDerivative(f, x));
+    }
+    const crit = [];
+    for (let i = 0; i < samples - 1; i++) {
+      const d1 = fp[i], d2 = fp[i+1];
+      if (!isFinite(d1) || !isFinite(d2)) continue;
+      if (Math.abs(d1) < 1e-3) crit.push(xs[i]);
+      if (d1 * d2 < 0) {
+        const xMid = 0.5*(xs[i] + xs[i+1]);
+        crit.push(xMid);
+      }
+    }
+    const uniq = [];
+    crit.sort((u,v)=>u-v);
+    for (let x of crit) {
+      if (!uniq.length || Math.abs(x - uniq[uniq.length-1]) > 1e-2) uniq.push(x);
+    }
+    return uniq;
+  }
+
+  optBtn.addEventListener("click", () => {
+    optOutput.classList.remove("error");
+    try {
+      const expr = optF.value;
+      const f = buildFunction(expr);
+      const a = parseFloat(optA.value);
+      const b = parseFloat(optB.value);
+      if (!isFinite(a) || !isFinite(b) || a >= b) throw new Error("Invalid interval [a, b]");
+      const samples = 120;
+      const crit = findCriticalPointsOnInterval(f, a, b, samples);
+      const points = [a, b].concat(crit);
+      const results = points.map(x => ({ x, fx: f(x) }));
+      let min = results[0], max = results[0];
+      for (let r of results) {
+        if (r.fx < min.fx) min = r;
+        if (r.fx > max.fx) max = r;
+      }
+      optOutput.textContent =
+        "f(x) = " + expr +
+        "\nInterval [a, b] = [" + a + ", " + b + "]" +
+        "\nCritical candidates (approx): " + (crit.length ? crit.map(v=>v.toFixed(4)).join(", ") : "none") +
+        "\n\nMinimum ≈ f(" + min.x.toFixed(4) + ") = " + min.fx +
+        "\nMaximum ≈ f(" + max.x.toFixed(4) + ") = " + max.fx;
+    } catch (err) {
+      optOutput.textContent = "Error: " + err.message;
+      optOutput.classList.add("error");
+    }
+  });
+
+  // --- Plot f and mark extrema ---
+  const plotBtn = document.getElementById("plot-btn");
+  const plotCanvas = document.getElementById("plot-canvas");
+  const plotCtx = plotCanvas.getContext("2d");
+
+  function drawAxes(ctx, canvas, xmin, xmax, ymin, ymax) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "#050608";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.strokeStyle = "#1a2a1a";
+    ctx.lineWidth = 1;
+
+    const gridCount = 10;
+    for (let i = 0; i <= gridCount; i++) {
+      const t = i / gridCount;
+      const x = t * canvas.width;
+      const y = t * canvas.height;
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, canvas.height);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(canvas.width, y);
+      ctx.stroke();
+    }
+
+    ctx.strokeStyle = "#00ff7f";
+    ctx.lineWidth = 1.2;
+
+    if (ymin < 0 && ymax > 0) {
+      const y0 = canvas.height * (1 - (0 - ymin) / (ymax - ymin));
+      ctx.beginPath();
+      ctx.moveTo(0, y0);
+      ctx.lineTo(canvas.width, y0);
+      ctx.stroke();
+    }
+
+    if (xmin < 0 && xmax > 0) {
+      const x0 = canvas.width * (0 - xmin) / (xmax - xmin);
+      ctx.beginPath();
+      ctx.moveTo(x0, 0);
+      ctx.lineTo(x0, canvas.height);
+      ctx.stroke();
+    }
+  }
+
+  plotBtn.addEventListener("click", () => {
+    try {
+      const expr = optF.value;
+      const f = buildFunction(expr);
+      const a = parseFloat(optA.value);
+      const b = parseFloat(optB.value);
+      if (!isFinite(a) || !isFinite(b) || a >= b) throw new Error("Invalid interval [a, b]");
+      const N = 400;
+      const xs = [];
+      const ys = [];
+      for (let i = 0; i < N; i++) {
+        const t = i / (N - 1);
+        const x = a + t * (b - a);
+        xs.push(x);
+        let y;
+        try { y = f(x); } catch { y = NaN; }
+        ys.push(isFinite(y) ? y : NaN);
+      }
+      const finite = ys.filter(v => isFinite(v));
+      if (!finite.length) throw new Error("No finite values to plot");
+      let ymin = Math.min(...finite), ymax = Math.max(...finite);
+      if (ymin === ymax) { ymin -= 1; ymax += 1; }
+
+      drawAxes(plotCtx, plotCanvas, a, b, ymin, ymax);
+
+      // plot f
+      plotCtx.strokeStyle = "#00ff7f";
+      plotCtx.lineWidth = 1.4;
+      plotCtx.beginPath();
+      let started = false;
+      for (let i = 0; i < xs.length; i++) {
+        const x = xs[i];
+        const y = ys[i];
+        if (!isFinite(y)) { started = false; continue; }
+        const px = (x - a)/(b - a)*plotCanvas.width;
+        const py = (1 - (y - ymin)/(ymax - ymin))*plotCanvas.height;
+        if (!started) { plotCtx.moveTo(px, py); started = true; }
+        else plotCtx.lineTo(px, py);
+      }
+      plotCtx.stroke();
+
+      // find extrema again
+      const samples = 160;
+      const crit = findCriticalPointsOnInterval(f, a, b, samples);
+      const points = [a, b].concat(crit);
+      const results = points.map(x => ({ x, fx: f(x) }));
+      let min = results[0], max = results[0];
+      for (let r of results) {
+        if (r.fx < min.fx) min = r;
+        if (r.fx > max.fx) max = r;
+      }
+
+      // mark min (cyan) and max (yellow)
+      function markPoint(xc, yc, color) {
+        if (!isFinite(yc)) return;
+        const px = (xc - a)/(b - a)*plotCanvas.width;
+        const py = (1 - (yc - ymin)/(ymax - ymin))*plotCanvas.height;
+        plotCtx.fillStyle = color;
+        plotCtx.beginPath();
+        plotCtx.arc(px, py, 4, 0, 2*Math.PI);
+        plotCtx.fill();
+      }
+      markPoint(min.x, min.fx, "#00ffff");
+      markPoint(max.x, max.fx, "#ffff66");
+    } catch (err) {
+      plotCtx.clearRect(0, 0, plotCanvas.width, plotCanvas.height);
+      plotCtx.fillStyle = "#050608";
+      plotCtx.fillRect(0, 0, plotCanvas.width, plotCanvas.height);
+      plotCtx.fillStyle = "#ff4d4d";
+      plotCtx.font = "12px " + getComputedStyle(document.body).fontFamily;
+      plotCtx.fillText("Error: " + err.message, 10, 20);
+    }
+  });
+
+  // Hints
+  document.querySelectorAll(".hint-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const id = btn.getAttribute("data-hint");
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.style.display = el.style.display === "block" ? "none" : "block";
+    });
+  });
+
+  // Initial runs
+  rectBtn.click();
+  boxBtn.click();
+  optBtn.click();
+  plotBtn.click();
+</script>
+</body>
+</html>
+

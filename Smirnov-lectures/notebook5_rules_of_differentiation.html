@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Notebook 5 – Rules of Differentiation (Terminal Style)</title>
+<style>
+  :root {
+    --bg: #050608;
+    --bg-alt: #0b0f14;
+    --accent: #00ff7f;
+    --accent-soft: #00ff7f33;
+    --text: #e5ffe5;
+    --muted: #7fbf7f;
+    --danger: #ff4d4d;
+    --border: #1a2a1a;
+    --font-mono: "Fira Code", "JetBrains Mono", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 0;
+    background: radial-gradient(circle at top, #101820 0, #050608 55%);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 14px;
+  }
+  .scanline {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0.15),
+      rgba(0, 0, 0, 0.15) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+    mix-blend-mode: soft-light;
+    opacity: 0.4;
+    z-index: 999;
+  }
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 20px 16px 60px;
+  }
+  .header {
+    border: 1px solid var(--border);
+    background: linear-gradient(135deg, #050608 0, #0b0f14 60%, #050608 100%);
+    padding: 16px 18px;
+    margin-bottom: 18px;
+    box-shadow: 0 0 18px #00ff7f22;
+  }
+  .header-title {
+    color: var(--accent);
+    font-size: 20px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  .header-sub {
+    color: var(--muted);
+    margin-top: 4px;
+  }
+  .badge {
+    display: inline-block;
+    border: 1px solid var(--accent-soft);
+    color: var(--accent);
+    padding: 2px 8px;
+    margin-top: 8px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: minmax(0, 2.1fr) minmax(0, 1.4fr);
+    gap: 16px;
+  }
+  @media (max-width: 900px) {
+    .grid { grid-template-columns: 1fr; }
+  }
+  .card {
+    border: 1px solid var(--border);
+    background: radial-gradient(circle at top left, #101820 0, #050608 55%);
+    padding: 14px 14px 16px;
+    position: relative;
+    overflow: hidden;
+  }
+  .card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, transparent 0, #00ff7f11 40%, transparent 100%);
+    opacity: 0.4;
+    pointer-events: none;
+  }
+  .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  .card-title {
+    color: var(--accent);
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+  }
+  .card-tag {
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .card-body {
+    position: relative;
+    z-index: 1;
+  }
+  h2 {
+    color: var(--accent);
+    font-size: 15px;
+    margin: 18px 0 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+  }
+  p {
+    margin: 6px 0;
+    color: var(--text);
+  }
+  .quote {
+    border-left: 2px solid var(--accent-soft);
+    padding-left: 10px;
+    margin: 8px 0;
+    color: var(--muted);
+    font-size: 13px;
+  }
+  .inline-code {
+    background: #0b0f14;
+    border: 1px solid var(--border);
+    padding: 1px 4px;
+    border-radius: 2px;
+    font-size: 12px;
+  }
+  .terminal-block {
+    background: #050608;
+    border: 1px solid var(--border);
+    padding: 8px 10px;
+    font-size: 12px;
+    overflow-x: auto;
+    position: relative;
+  }
+  .terminal-block::before {
+    content: ">>> ";
+    color: var(--accent);
+    position: absolute;
+    left: 8px;
+    top: 6px;
+  }
+  .terminal-block pre {
+    margin: 0;
+    padding-left: 26px;
+    white-space: pre;
+  }
+  .label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+  input, select {
+    background: #050608;
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 4px 6px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    width: 100%;
+  }
+  input:focus, select:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent-soft);
+  }
+  button {
+    background: #050608;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    padding: 4px 10px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    cursor: pointer;
+  }
+  button:hover {
+    background: var(--accent-soft);
+  }
+  button:active {
+    transform: translateY(1px);
+  }
+  .row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+  .row > * { flex: 1; }
+  .output {
+    font-size: 13px;
+    color: var(--accent);
+    margin-top: 4px;
+    min-height: 18px;
+    white-space: pre-wrap;
+  }
+  .output.error {
+    color: var(--danger);
+  }
+  canvas {
+    width: 100%;
+    height: 260px;
+    background: #050608;
+    border: 1px solid var(--border);
+  }
+  .axis-label {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+  .section-sep {
+    margin: 22px 0 10px;
+    border-top: 1px dashed var(--border);
+  }
+  .exercise {
+    border: 1px dashed var(--border);
+    padding: 8px 10px;
+    margin: 6px 0;
+    background: #050608;
+  }
+  .exercise-title {
+    color: var(--accent);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    margin-bottom: 4px;
+  }
+  .hint-btn {
+    border-color: var(--border);
+    color: var(--muted);
+    font-size: 10px;
+    padding: 2px 6px;
+  }
+  .hint {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 4px;
+    display: none;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    margin-top: 6px;
+  }
+  th, td {
+    border: 1px solid var(--border);
+    padding: 3px 4px;
+    text-align: left;
+  }
+  th {
+    background: #0b0f14;
+    color: var(--muted);
+  }
+  .func-list button {
+    margin: 2px 2px 2px 0;
+    font-size: 11px;
+  }
+</style>
+</head>
+<body>
+<div class="scanline"></div>
+<div class="container">
+  <div class="header">
+    <div class="header-title">Notebook 5 :: Rules of Differentiation</div>
+    <div class="header-sub">Smirnov – A Course of Higher Mathematics, Vol. 1 – Differentiation Rules</div>
+    <div class="badge">Mode: Offline · HTML/JS · Terminal/Hacker Theme</div>
+  </div>
+
+  <div class="grid">
+    <!-- THEORY COLUMN -->
+    <div>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Basic Rules</div>
+          <div class="card-tag">theory</div>
+        </div>
+        <div class="card-body">
+          <p>Let <span class="inline-code">f</span>, <span class="inline-code">g</span> be differentiable functions, <span class="inline-code">c</span> a constant.</p>
+          <div class="terminal-block">
+            <pre>
+1. (c)' = 0
+2. (xⁿ)' = n xⁿ⁻¹
+3. (c f(x))' = c f'(x)
+4. (f(x) + g(x))' = f'(x) + g'(x)</pre>
+          </div>
+          <p>These rules allow us to differentiate polynomials and linear combinations easily.</p>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:14px;">
+        <div class="card-header">
+          <div class="card-title">Product, Quotient, Chain</div>
+          <div class="card-tag">theory</div>
+        </div>
+        <div class="card-body">
+          <div class="terminal-block">
+            <pre>
+5. (f g)' = f' g + f g'
+6. (f / g)' = (f' g − f g') / g²
+7. (F∘u)'(x) = F'(u(x)) · u'(x)</pre>
+          </div>
+          <p>Rule (5) is the <strong>product rule</strong>, (6) the <strong>quotient rule</strong>, (7) the <strong>chain rule</strong>.</p>
+          <div class="quote">
+            “The derivative of a composite function is the product of the derivative of the outer function and the derivative of the inner function.”
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:14px;">
+        <div class="card-header">
+          <div class="card-title">Elementary Functions</div>
+          <div class="card-tag">theory</div>
+        </div>
+        <div class="card-body">
+          <div class="terminal-block">
+            <pre>
+(d/dx) sin x = cos x
+(d/dx) cos x = −sin x
+(d/dx) tan x = sec² x
+
+(d/dx) eˣ = eˣ
+(d/dx) aˣ = aˣ ln a
+
+(d/dx) ln x = 1/x
+(d/dx) √x = 1 / (2√x)</pre>
+          </div>
+          <p>Combining these with the rules above gives derivatives of many complicated expressions.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- INTERACTIVE COLUMN -->
+    <div>
+      <!-- SYMBOLIC VS NUMERIC CHECKER -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Symbolic vs Numeric Derivative</div>
+          <div class="card-tag">interactive</div>
+        </div>
+        <div class="card-body">
+          <p class="label">1. Choose a known function</p>
+          <select id="known-func-select">
+            <option value="x^2">f(x) = x^2</option>
+            <option value="x^3">f(x) = x^3</option>
+            <option value="sin(x)">f(x) = sin(x)</option>
+            <option value="cos(x)">f(x) = cos(x)</option>
+            <option value="exp(x)">f(x) = e^x</option>
+            <option value="log(x)">f(x) = ln x</option>
+            <option value="x^2 * sin(x)">f(x) = x^2 sin(x)</option>
+            <option value="x^3 * cos(x)">f(x) = x^3 cos(x)</option>
+            <option value="exp(sin(x))">f(x) = e^{sin x}</option>
+            <option value="log(x^2 + 1)">f(x) = ln(x^2 + 1)</option>
+          </select>
+          <p class="label" style="margin-top:8px;">2. Point x₀</p>
+          <input id="checker-x0" value="1" />
+          <button id="checker-btn" style="margin-top:8px;">Compare numeric vs symbolic</button>
+          <div id="checker-output" class="output"></div>
+        </div>
+      </div>
+
+      <!-- PRODUCT RULE VISUALIZER -->
+      <div class="card" style="margin-top:14px;">
+        <div class="card-header">
+          <div class="card-title">Product Rule Visualizer</div>
+          <div class="card-tag">interactive</div>
+        </div>
+        <div class="card-body">
+          <p class="label">Choose f and g</p>
+          <div class="row">
+            <div>
+              <span class="label">f(x)</span>
+              <select id="prod-f">
+                <option value="x">x</option>
+                <option value="x^2">x^2</option>
+                <option value="sin(x)">sin(x)</option>
+                <option value="cos(x)">cos(x)</option>
+              </select>
+            </div>
+            <div>
+              <span class="label">g(x)</span>
+              <select id="prod-g">
+                <option value="x">x</option>
+                <option value="x^2">x^2</option>
+                <option value="sin(x)">sin(x)</option>
+                <option value="cos(x)">cos(x)</option>
+              </select>
+            </div>
+          </div>
+          <button id="prod-btn">Plot f, g, and (fg)'</button>
+          <canvas id="prod-canvas" width="500" height="260"></canvas>
+          <div class="axis-label">Green: f(x) · Cyan: g(x) · Magenta: derivative of f(x)g(x) (numeric)</div>
+        </div>
+      </div>
+
+      <!-- CHAIN RULE VISUALIZER -->
+      <div class="card" style="margin-top:14px;">
+        <div class="card-header">
+          <div class="card-title">Chain Rule Visualizer</div>
+          <div class="card-tag">interactive</div>
+        </div>
+        <div class="card-body">
+          <p class="label">Outer F(u) and inner u(x)</p>
+          <div class="row">
+            <div>
+              <span class="label">F(u)</span>
+              <select id="chain-F">
+                <option value="u^2">u^2</option>
+                <option value="sin(u)">sin(u)</option>
+                <option value="exp(u)">e^u</option>
+                <option value="log(u)">ln u</option>
+              </select>
+            </div>
+            <div>
+              <span class="label">u(x)</span>
+              <select id="chain-u">
+                <option value="x^2">x^2</option>
+                <option value="x^3">x^3</option>
+                <option value="sin(x)">sin(x)</option>
+                <option value="cos(x)">cos(x)</option>
+              </select>
+            </div>
+          </div>
+          <button id="chain-btn">Compare chain rule vs numeric</button>
+          <div id="chain-output" class="output"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DERIVATIVE TABLE + TANGENT -->
+  <div class="section-sep"></div>
+  <h2>Derivative Table Explorer</h2>
+  <div class="grid">
+    <div>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Common Derivatives</div>
+          <div class="card-tag">reference</div>
+        </div>
+        <div class="card-body">
+          <div class="func-list" id="func-list"></div>
+          <div id="table-output"></div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Graph & Tangent</div>
+          <div class="card-tag">interactive</div>
+        </div>
+        <div class="card-body">
+          <p class="label">x₀ for tangent</p>
+          <input id="tangent-x0" value="1" />
+          <button id="tangent-btn" style="margin-top:8px;">Plot f and tangent at x₀</button>
+          <canvas id="tangent-canvas" width="500" height="260"></canvas>
+          <div class="axis-label">Green: f(x) · Magenta: tangent at x₀</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EXERCISES -->
+  <div class="section-sep"></div>
+  <h2>Exercises (Interactive Hints)</h2>
+
+  <div class="exercise">
+    <div class="exercise-title">Exercise 1 – x³ sin x</div>
+    <p>Differentiate <span class="inline-code">f(x) = x³ sin x</span> using the product rule.</p>
+    <button class="hint-btn" data-hint="hint1">Show hint</button>
+    <div id="hint1" class="hint">
+      Let <span class="inline-code">f(x) = x³</span>, <span class="inline-code">g(x) = sin x</span>. Then <span class="inline-code">(fg)' = f'g + fg'</span>.
+    </div>
+  </div>
+
+  <div class="exercise">
+    <div class="exercise-title">Exercise 2 – √(x² + 1)</div>
+    <p>Differentiate <span class="inline-code">f(x) = √(x² + 1)</span> using the chain rule.</p>
+    <button class="hint-btn" data-hint="hint2">Show hint</button>
+    <div id="hint2" class="hint">
+      Write <span class="inline-code">f(x) = (x² + 1)^{1/2}</span>. Take <span class="inline-code">F(u) = u^{1/2}</span>, <span class="inline-code">u(x) = x² + 1</span>.
+    </div>
+  </div>
+
+  <div class="exercise">
+    <div class="exercise-title">Exercise 3 – Rational function</div>
+    <p>Differentiate <span class="inline-code">f(x) = (x² + 1)/(x − 3)</span> using the quotient rule.</p>
+    <button class="hint-btn" data-hint="hint3">Show hint</button>
+    <div id="hint3" class="hint">
+      Let <span class="inline-code">f(x) = x² + 1</span>, <span class="inline-code">g(x) = x − 3</span>. Then <span class="inline-code">(f/g)' = (f'g − fg')/g²</span>.
+    </div>
+  </div>
+
+  <div class="exercise">
+    <div class="exercise-title">Exercise 4 – e^{sin x}</div>
+    <p>Differentiate <span class="inline-code">f(x) = e^{sin x}</span> using the chain rule.</p>
+    <button class="hint-btn" data-hint="hint4">Show hint</button>
+    <div id="hint4" class="hint">
+      Take <span class="inline-code">F(u) = e^u</span>, <span class="inline-code">u(x) = sin x</span>. Then <span class="inline-code">f'(x) = e^{sin x} cos x</span>.
+    </div>
+  </div>
+</div>
+
+<script>
+  // --- Utility: parse expression (sin, cos, etc. without Math.) ---
+  function buildFunction(expr) {
+    let e = expr.replace(/\^/g, "**");
+    const funcs = ["sin","cos","tan","exp","log","sqrt","abs"];
+    funcs.forEach(fn => {
+      e = e.replace(new RegExp("Math\\." + fn + "\\(", "g"), "__MATH__" + fn + "(");
+    });
+    funcs.forEach(fn => {
+      e = e.replace(new RegExp("\\b" + fn + "\\(", "g"), "Math." + fn + "(");
+    });
+    funcs.forEach(fn => {
+      e = e.replace(new RegExp("__MATH__" + fn + "\\(", "g"), "Math." + fn + "(");
+    });
+    return new Function("x", "return " + e + ";");
+  }
+
+  function numericDerivative(f, x0) {
+    const h = 1e-5;
+    return (f(x0 + h) - f(x0 - h)) / (2*h);
+  }
+
+  // --- Symbolic derivatives for a small set of known functions ---
+  function symbolicDerivative(expr) {
+    // Very small pattern-based engine for the dropdown functions
+    expr = expr.replace(/\s+/g, "");
+    if (expr === "x" || expr === "x^1") return "1";
+    if (expr === "x^2") return "2*x";
+    if (expr === "x^3") return "3*x^2";
+    if (expr === "sin(x)") return "cos(x)";
+    if (expr === "cos(x)") return "-sin(x)";
+    if (expr === "exp(x)") return "exp(x)";
+    if (expr === "log(x)") return "1/x";
+    if (expr === "x^2*sin(x)") return "2*x*sin(x) + x^2*cos(x)";
+    if (expr === "x^3*cos(x)") return "3*x^2*cos(x) - x^3*sin(x)";
+    if (expr === "exp(sin(x))") return "exp(sin(x))*cos(x)";
+    if (expr === "log(x^2+1)") return "2*x/(x^2+1)";
+    return "(no symbolic rule implemented)";
+  }
+
+  // --- Symbolic vs numeric checker ---
+  const knownSelect = document.getElementById("known-func-select");
+  const checkerX0 = document.getElementById("checker-x0");
+  const checkerBtn = document.getElementById("checker-btn");
+  const checkerOutput = document.getElementById("checker-output");
+
+  checkerBtn.addEventListener("click", () => {
+    checkerOutput.classList.remove("error");
+    try {
+      const expr = knownSelect.value;
+      const x0 = parseFloat(checkerX0.value);
+      if (!isFinite(x0)) throw new Error("x₀ must be a number");
+      const f = buildFunction(expr);
+      const num = numericDerivative(f, x0);
+      const sym = symbolicDerivative(expr);
+      let symVal = "N/A";
+      if (!sym.includes("no symbolic")) {
+        const df = buildFunction(sym);
+        symVal = df(x0);
+      }
+      checkerOutput.textContent =
+        "f(x)   = " + expr +
+        "\nf'(x) (symbolic) = " + sym +
+        "\n\nAt x₀ = " + x0 +
+        "\nNumeric derivative ≈ " + num +
+        "\nSymbolic value     ≈ " + symVal;
+    } catch (err) {
+      checkerOutput.textContent = "Error: " + err.message;
+      checkerOutput.classList.add("error");
+    }
+  });
+
+  // --- Product rule visualizer ---
+  const prodF = document.getElementById("prod-f");
+  const prodG = document.getElementById("prod-g");
+  const prodBtn = document.getElementById("prod-btn");
+  const prodCanvas = document.getElementById("prod-canvas");
+  const prodCtx = prodCanvas.getContext("2d");
+
+  function drawAxes(ctx, canvas, xmin, xmax, ymin, ymax) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "#050608";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.strokeStyle = "#1a2a1a";
+    ctx.lineWidth = 1;
+
+    const gridCount = 10;
+    for (let i = 0; i <= gridCount; i++) {
+      const t = i / gridCount;
+      const x = t * canvas.width;
+      const y = t * canvas.height;
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, canvas.height);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(canvas.width, y);
+      ctx.stroke();
+    }
+
+    ctx.strokeStyle = "#00ff7f";
+    ctx.lineWidth = 1.2;
+
+    if (ymin < 0 && ymax > 0) {
+      const y0 = canvas.height * (1 - (0 - ymin) / (ymax - ymin));
+      ctx.beginPath();
+      ctx.moveTo(0, y0);
+      ctx.lineTo(canvas.width, y0);
+      ctx.stroke();
+    }
+
+    if (xmin < 0 && xmax > 0) {
+      const x0 = canvas.width * (0 - xmin) / (xmax - xmin);
+      ctx.beginPath();
+      ctx.moveTo(x0, 0);
+      ctx.lineTo(x0, canvas.height);
+      ctx.stroke();
+    }
+  }
+
+  prodBtn.addEventListener("click", () => {
+    try {
+      const fExpr = prodF.value;
+      const gExpr = prodG.value;
+      const f = buildFunction(fExpr);
+      const g = buildFunction(gExpr);
+      const xmin = -3, xmax = 3;
+      const N = 400;
+      const xs = [];
+      const ysF = [], ysG = [], ysDer = [];
+      for (let i = 0; i < N; i++) {
+        const t = i / (N - 1);
+        const x = xmin + t * (xmax - xmin);
+        xs.push(x);
+        const fv = f(x);
+        const gv = g(x);
+        ysF.push(isFinite(fv) ? fv : NaN);
+        ysG.push(isFinite(gv) ? gv : NaN);
+        const h = 1e-4;
+        const prodPlus = f(x + h)*g(x + h);
+        const prodMinus = f(x - h)*g(x - h);
+        const dv = (prodPlus - prodMinus)/(2*h);
+        ysDer.push(isFinite(dv) ? dv : NaN);
+      }
+      const finite = ysF.concat(ysG, ysDer).filter(v => isFinite(v));
+      if (!finite.length) throw new Error("No finite values to plot");
+      let ymin = Math.min(...finite), ymax = Math.max(...finite);
+      if (ymin === ymax) { ymin -= 1; ymax += 1; }
+
+      drawAxes(prodCtx, prodCanvas, xmin, xmax, ymin, ymax);
+
+      function plotSeries(series, color) {
+        prodCtx.strokeStyle = color;
+        prodCtx.lineWidth = 1.2;
+        prodCtx.beginPath();
+        let started = false;
+        for (let i = 0; i < xs.length; i++) {
+          const x = xs[i];
+          const y = series[i];
+          if (!isFinite(y)) { started = false; continue; }
+          const px = (x - xmin)/(xmax - xmin)*prodCanvas.width;
+          const py = (1 - (y - ymin)/(ymax - ymin))*prodCanvas.height;
+          if (!started) { prodCtx.moveTo(px, py); started = true; }
+          else prodCtx.lineTo(px, py);
+        }
+        prodCtx.stroke();
+      }
+
+      plotSeries(ysF, "#00ff7f");
+      plotSeries(ysG, "#00ffff");
+      plotSeries(ysDer, "#ff4dff");
+    } catch (err) {
+      prodCtx.clearRect(0, 0, prodCanvas.width, prodCanvas.height);
+      prodCtx.fillStyle = "#050608";
+      prodCtx.fillRect(0, 0, prodCanvas.width, prodCanvas.height);
+      prodCtx.fillStyle = "#ff4d4d";
+      prodCtx.font = "12px " + getComputedStyle(document.body).fontFamily;
+      prodCtx.fillText("Error: " + err.message, 10, 20);
+    }
+  });
+
+  // --- Chain rule visualizer ---
+  const chainF = document.getElementById("chain-F");
+  const chainU = document.getElementById("chain-u");
+  const chainBtn = document.getElementById("chain-btn");
+  const chainOutput = document.getElementById("chain-output");
+
+  function chainSymbolic(Fexpr, uexpr) {
+    // Very small set of patterns
+    let Fp, up;
+    if (Fexpr === "u^2") Fp = "2*u";
+    else if (Fexpr === "sin(u)") Fp = "cos(u)";
+    else if (Fexpr === "exp(u)") Fp = "exp(u)";
+    else if (Fexpr === "log(u)") Fp = "1/u";
+    else Fp = "(?)";
+
+    if (uexpr === "x^2") up = "2*x";
+    else if (uexpr === "x^3") up = "3*x^2";
+    else if (uexpr === "sin(x)") up = "cos(x)";
+    else if (uexpr === "cos(x)") up = "-sin(x)";
+    else up = "(?)";
+
+    if (Fp === "(?)" || up === "(?)") return "(no symbolic chain rule implemented)";
+    // Replace u with u(x) in F'
+    let FpOfU = Fp.replace(/u/g, "(" + uexpr + ")");
+    return FpOfU + " * (" + up + ")";
+  }
+
+  chainBtn.addEventListener("click", () => {
+    chainOutput.classList.remove("error");
+    try {
+      const Fexpr = chainF.value;
+      const uexpr = chainU.value;
+      const composite = Fexpr.replace(/u/g, "(" + uexpr + ")");
+      const f = buildFunction(composite);
+      const sym = chainSymbolic(Fexpr, uexpr);
+      const df = sym.includes("no symbolic") ? null : buildFunction(sym);
+      const x0 = 1;
+      const num = numericDerivative(f, x0);
+      let symVal = "N/A";
+      if (df) symVal = df(x0);
+      chainOutput.textContent =
+        "F(u)   = " + Fexpr +
+        "\nu(x)  = " + uexpr +
+        "\nF(u(x)) = " + composite +
+        "\n\nChain rule derivative: " + sym +
+        "\nAt x = 1: numeric ≈ " + num + ", symbolic ≈ " + symVal;
+    } catch (err) {
+      chainOutput.textContent = "Error: " + err.message;
+      chainOutput.classList.add("error");
+    }
+  });
+
+  // --- Derivative table explorer ---
+  const funcListDiv = document.getElementById("func-list");
+  const tableOutput = document.getElementById("table-output");
+  const tangentCanvas = document.getElementById("tangent-canvas");
+  const tangentCtx = tangentCanvas.getContext("2d");
+  const tangentX0 = document.getElementById("tangent-x0");
+  const tangentBtn = document.getElementById("tangent-btn");
+
+  const tableData = [
+    { name: "x", expr: "x", deriv: "1" },
+    { name: "x^2", expr: "x^2", deriv: "2*x" },
+    { name: "x^3", expr: "x^3", deriv: "3*x^2" },
+    { name: "sin x", expr: "sin(x)", deriv: "cos(x)" },
+    { name: "cos x", expr: "cos(x)", deriv: "-sin(x)" },
+    { name: "e^x", expr: "exp(x)", deriv: "exp(x)" },
+    { name: "ln x", expr: "log(x)", deriv: "1/x" },
+    { name: "x^2 sin x", expr: "x^2*sin(x)", deriv: "2*x*sin(x) + x^2*cos(x)" },
+    { name: "ln(x^2+1)", expr: "log(x^2+1)", deriv: "2*x/(x^2+1)" }
+  ];
+
+  let currentTableFunc = tableData[0];
+
+  function renderTable() {
+    let html = "<table><thead><tr><th>f(x)</th><th>f'(x)</th></tr></thead><tbody>";
+    tableData.forEach(row => {
+      html += "<tr><td>" + row.expr + "</td><td>" + row.deriv + "</td></tr>";
+    });
+    html += "</tbody></table>";
+    tableOutput.innerHTML = html;
+  }
+
+  function renderFuncButtons() {
+    funcListDiv.innerHTML = "";
+    tableData.forEach(row => {
+      const btn = document.createElement("button");
+      btn.textContent = row.name;
+      btn.addEventListener("click", () => {
+        currentTableFunc = row;
+      });
+      funcListDiv.appendChild(btn);
+    });
+  }
+
+  tangentBtn.addEventListener("click", () => {
+    try {
+      const f = buildFunction(currentTableFunc.expr);
+      const df = buildFunction(currentTableFunc.deriv);
+      const x0 = parseFloat(tangentX0.value);
+      if (!isFinite(x0)) throw new Error("x₀ must be a number");
+      const xmin = x0 - 3, xmax = x0 + 3;
+      const N = 400;
+      const xs = [], ys = [];
+      for (let i = 0; i < N; i++) {
+        const t = i / (N - 1);
+        const x = xmin + t * (xmax - xmin);
+        let y;
+        try { y = f(x); } catch { y = NaN; }
+        xs.push(x);
+        ys.push(isFinite(y) ? y : NaN);
+      }
+      const finite = ys.filter(v => isFinite(v));
+      if (!finite.length) throw new Error("No finite values to plot");
+      let ymin = Math.min(...finite), ymax = Math.max(...finite);
+      if (ymin === ymax) { ymin -= 1; ymax += 1; }
+
+      drawAxes(tangentCtx, tangentCanvas, xmin, xmax, ymin, ymax);
+
+      // plot f
+      tangentCtx.strokeStyle = "#00ff7f";
+      tangentCtx.lineWidth = 1.4;
+      tangentCtx.beginPath();
+      let started = false;
+      for (let i = 0; i < xs.length; i++) {
+        const x = xs[i];
+        const y = ys[i];
+        if (!isFinite(y)) { started = false; continue; }
+        const px = (x - xmin)/(xmax - xmin)*tangentCanvas.width;
+        const py = (1 - (y - ymin)/(ymax - ymin))*tangentCanvas.height;
+        if (!started) { tangentCtx.moveTo(px, py); started = true; }
+        else tangentCtx.lineTo(px, py);
+      }
+      tangentCtx.stroke();
+
+      // tangent line
+      const fx0 = f(x0);
+      const m = df(x0);
+      tangentCtx.strokeStyle = "#ff4dff";
+      tangentCtx.lineWidth = 1.2;
+      tangentCtx.beginPath();
+      for (let i = 0; i < xs.length; i++) {
+        const x = xs[i];
+        const y = fx0 + m*(x - x0);
+        const px = (x - xmin)/(xmax - xmin)*tangentCanvas.width;
+        const py = (1 - (y - ymin)/(ymax - ymin))*tangentCanvas.height;
+        if (i === 0) tangentCtx.moveTo(px, py); else tangentCtx.lineTo(px, py);
+      }
+      tangentCtx.stroke();
+    } catch (err) {
+      tangentCtx.clearRect(0, 0, tangentCanvas.width, tangentCanvas.height);
+      tangentCtx.fillStyle = "#050608";
+      tangentCtx.fillRect(0, 0, tangentCanvas.width, tangentCanvas.height);
+      tangentCtx.fillStyle = "#ff4d4d";
+      tangentCtx.font = "12px " + getComputedStyle(document.body).fontFamily;
+      tangentCtx.fillText("Error: " + err.message, 10, 20);
+    }
+  });
+
+  // Hints
+  document.querySelectorAll(".hint-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const id = btn.getAttribute("data-hint");
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.style.display = el.style.display === "block" ? "none" : "block";
+    });
+  });
+
+  // Initial setup
+  renderFuncButtons();
+  renderTable();
+  checkerBtn.click();
+  prodBtn.click();
+  chainBtn.click();
+</script>
+</body>
+</html>
+

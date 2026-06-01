@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Notebook 11 – Indefinite Integrals & Antiderivatives (Terminal Style)</title>
+<style>
+  :root {
+    --bg: #050608;
+    --bg-alt: #0b0f14;
+    --accent: #00ff7f;
+    --accent-soft: #00ff7f33;
+    --text: #e5ffe5;
+    --muted: #7fbf7f;
+    --danger: #ff4d4d;
+    --border: #1a2a1a;
+    --font-mono: "Fira Code", "JetBrains Mono", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 0;
+    background: radial-gradient(circle at top, #101820 0, #050608 55%);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 14px;
+  }
+  .scanline {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0.15),
+      rgba(0, 0, 0, 0.15) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+    mix-blend-mode: soft-light;
+    opacity: 0.4;
+    z-index: 999;
+  }
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 20px 16px 60px;
+  }
+  .header {
+    border: 1px solid var(--border);
+    background: linear-gradient(135deg, #050608 0, #0b0f14 60%, #050608 100%);
+    padding: 16px 18px;
+    margin-bottom: 18px;
+    box-shadow: 0 0 18px #00ff7f22;
+  }
+  .header-title {
+    color: var(--accent);
+    font-size: 20px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  .header-sub {
+    color: var(--muted);
+    margin-top: 4px;
+  }
+  .badge {
+    display: inline-block;
+    border: 1px solid var(--accent-soft);
+    color: var(--accent);
+    padding: 2px 8px;
+    margin-top: 8px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: minmax(0, 2.1fr) minmax(0, 1.4fr);
+    gap: 16px;
+  }
+  @media (max-width: 900px) {
+    .grid { grid-template-columns: 1fr; }
+  }
+  .card {
+    border: 1px solid var(--border);
+    background: radial-gradient(circle at top left, #101820 0, #050608 55%);
+    padding: 14px 14px 16px;
+    position: relative;
+    overflow: hidden;
+  }
+  .card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, transparent 0, #00ff7f11 40%, transparent 100%);
+    opacity: 0.4;
+    pointer-events: none;
+  }
+  .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  .card-title {
+    color: var(--accent);
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+  }
+  .card-tag {
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .card-body {
+    position: relative;
+    z-index: 1;
+  }
+  h2 {
+    color: var(--accent);
+    font-size: 15px;
+    margin: 18px 0 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+  }
+  p {
+    margin: 6px 0;
+    color: var(--text);
+  }
+  .quote {
+    border-left: 2px solid var(--accent-soft);
+    padding-left: 10px;
+    margin: 8px 0;
+    color: var(--muted);
+    font-size: 13px;
+  }
+  .inline-code {
+    background: #0b0f14;
+    border: 1px solid var(--border);
+    padding: 1px 4px;
+    border-radius: 2px;
+    font-size: 12px;
+  }
+  .terminal-block {
+    background: #050608;
+    border: 1px solid var(--border);
+    padding: 8px 10px;
+    font-size: 12px;
+    overflow-x: auto;
+    position: relative;
+  }
+  .terminal-block::before {
+    content: ">>> ";
+    color: var(--accent);
+    position: absolute;
+    left: 8px;
+    top: 6px;
+  }
+  .terminal-block pre {
+    margin: 0;
+    padding-left: 26px;
+    white-space: pre;
+  }
+  .label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+  input, select {
+    background: #050608;
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 4px 6px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    width: 100%;
+  }
+  input:focus, select:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent-soft);
+  }
+  button {
+    background: #050608;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    padding: 4px 10px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    cursor: pointer;
+  }
+  button:hover {
+    background: var(--accent-soft);
+  }
+  button:active {
+    transform: translateY(1px);
+  }
+  .row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+  .row > * { flex: 1; }
+  .output {
+    font-size: 13px;
+    color: var(--accent);
+    margin-top: 4px;
+    min-height: 18px;
+    white-space: pre-wrap;
+  }
+  .output.error {
+    color: var(--danger);
+  }
+  canvas {
+    width: 100%;
+    height: 260px;
+    background: #050608;
+    border: 1px solid var(--border);
+  }
+  .axis-label {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+  .section-sep {
+    margin: 22px 0 10px;
+    border-top: 1px dashed var(--border);
+  }
+  .exercise {
+    border: 1px dashed var(--border);
+    padding: 8px 10px;
+    margin: 6px 0;
+    background: #050608;
+  }
+  .exercise-title {
+    color: var(--accent);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    margin-bottom: 4px;
+  }
+  .hint-btn {
+    border-color: var(--border);
+    color: var(--muted);
+    font-size: 10px;
+    padding: 2px 6px;
+  }
+  .hint {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 4px;
+    display: none;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    margin-top: 6px;
+  }
+  th, td {
+    border: 1px solid var(--border);
+    padding: 3px 4px;
+    text-align: left;
+  }
+  th {
+    background: #0b0f14;
+    color: var(--muted);
+  }
+</style>
+</head>
+<body>
+<div class="scanline"></div>
+<div class="container">
+  <div class="header">
+    <div class="header-title">Notebook 11 :: Indefinite Integrals & Antiderivatives</div>
+    <div class="header-sub">Smirnov – A Course of Higher Mathematics, Vol. 1 – Indefinite integral, basic rules</div>
+    <div class="badge">Mode: Offline · HTML/JS · Terminal/Hacker Theme</div>
+  </div>
+
+  <div class="grid">
+    <!-- THEORY COLUMN -->
+    <div>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Definition & Notation</div>
+          <div class="card-tag">theory</div>
+        </div>
+        <div class="card-body">
+          <p>An <strong>antiderivative</strong> of f(x) is a function F(x) such that</p>
+          <div class="terminal-block">
+            <pre>
+F'(x) = f(x)</pre>
+          </div>
+          <p>The set of all antiderivatives is written as the <strong>indefinite integral</strong>:</p>
+          <div class="terminal-block">
+            <pre>
+∫ f(x) dx = F(x) + C</pre>
+          </div>
+          <div class="quote">
+            “Differentiation is precise; integration is ambiguous up to a constant.”
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:14px;">
+        <div class="card-header">
+          <div class="card-title">Basic Rules</div>
+          <div class="card-tag">theory</div>
+        </div>
+        <div class="card-body">
+          <div class="terminal-block">
+            <pre>
+∫ 0 dx = C
+∫ k dx = kx + C
+∫ xⁿ dx = xⁿ⁺¹/(n+1) + C   (n ≠ −1)
+∫ 1/x dx = ln|x| + C
+∫ eˣ dx = eˣ + C
+∫ cos x dx = sin x + C
+∫ sin x dx = −cos x + C
+∫ 1/(1+x²) dx = arctan x + C</pre>
+          </div>
+          <p>Linearity:</p>
+          <div class="terminal-block">
+            <pre>
+∫ (af(x) + bg(x)) dx = a ∫ f(x) dx + b ∫ g(x) dx</pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:14px;">
+        <div class="card-header">
+          <div class="card-title">Geometric Meaning</div>
+          <div class="card-tag">theory</div>
+        </div>
+        <div class="card-body">
+          <p>If F'(x) = f(x), then F(x) can be seen as “accumulated area” under f:</p>
+          <div class="terminal-block">
+            <pre>
+F(x) = ∫ f(t) dt + constant</pre>
+          </div>
+          <p>Later, the definite integral will make this precise as area between the graph and the x-axis.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- INTERACTIVE COLUMN -->
+    <div>
+      <!-- SYMBOLIC INTEGRATOR -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Symbolic Integrator (Standard Forms)</div>
+          <div class="card-tag">interactive</div>
+        </div>
+        <div class="card-body">
+          <p class="label">Choose a standard integrand</p>
+          <select id="symb-select">
+            <option value="x^n">x^n</option>
+            <option value="1/x">1/x</option>
+            <option value="exp">e^x</option>
+            <option value="sin">sin x</option>
+            <option value="cos">cos x</option>
+            <option value="1/(1+x^2)">1/(1+x^2)</option>
+            <option value="ax+b">ax + b</option>
+          </select>
+          <div class="row" style="margin-top:8px;">
+            <div>
+              <span class="label">Parameter n (for x^n)</span>
+              <input id="symb-n" value="2" />
+            </div>
+            <div>
+              <span class="label">a (for ax+b)</span>
+              <input id="symb-a" value="2" />
+            </div>
+            <div>
+              <span class="label">b (for ax+b)</span>
+              <input id="symb-b" value="1" />
+            </div>
+          </div>
+          <button id="symb-btn">Compute ∫ f(x) dx</button>
+          <div id="symb-output" class="output"></div>
+        </div>
+      </div>
+
+      <!-- NUMERIC ANTIDERIVATIVE -->
+      <div class="card" style="margin-top:14px;">
+        <div class="card-header">
+          <div class="card-title">Numeric Antiderivative (Area Accumulation)</div>
+          <div class="card-tag">interactive</div>
+        </div>
+        <div class="card-body">
+          <p class="label">Custom f(x)</p>
+          <input id="num-f" value="sin(x)" />
+          <div class="row" style="margin-top:8px;">
+            <div>
+              <span class="label">Reference point x₀</span>
+              <input id="num-x0" value="0" />
+            </div>
+            <div>
+              <span class="label">Compute F(x) at x</span>
+              <input id="num-x" value="1.5708" />
+            </div>
+          </div>
+          <button id="num-btn">Approximate F(x) = ∫ from x₀ to x f(t) dt</button>
+          <div id="num-output" class="output"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- GRAPH: f AND ACCUMULATED AREA -->
+  <div class="section-sep"></div>
+  <h2>Graph: f(x) and Antiderivative F(x)</h2>
+  <div class="grid">
+    <div>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">f(x) and Shaded Area</div>
+          <div class="card-tag">interactive</div>
+        </div>
+        <div class="card-body">
+          <p class="label">Plot range</p>
+          <div class="row">
+            <div>
+              <span class="label">x-min</span>
+              <input id="plot-xmin" value="-3" />
+            </div>
+            <div>
+              <span class="label">x-max</span>
+              <input id="plot-xmax" value="3" />
+            </div>
+          </div>
+          <button id="plot-f-btn">Plot f(x) and area from x₀ to x</button>
+          <canvas id="plot-f-canvas" width="500" height="260"></canvas>
+          <div class="axis-label">Green: f(x) · Cyan: shaded area region</div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Antiderivative F(x) (Numeric)</div>
+          <div class="card-tag">interactive</div>
+        </div>
+        <div class="card-body">
+          <button id="plot-F-btn">Plot F(x) = ∫ from x₀ to x f(t) dt</button>
+          <canvas id="plot-F-canvas" width="500" height="260"></canvas>
+          <div class="axis-label">Yellow: F(x) (up to constant)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SUMMARY TABLE -->
+  <div class="section-sep"></div>
+  <h2>Summary: Basic Indefinite Integrals</h2>
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">Standard Forms</div>
+      <div class="card-tag">reference</div>
+    </div>
+    <div class="card-body">
+      <table>
+        <thead>
+          <tr><th>f(x)</th><th>∫ f(x) dx</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>xⁿ (n ≠ −1)</td><td>xⁿ⁺¹/(n+1) + C</td></tr>
+          <tr><td>1/x</td><td>ln|x| + C</td></tr>
+          <tr><td>e^x</td><td>e^x + C</td></tr>
+          <tr><td>sin x</td><td>−cos x + C</td></tr>
+          <tr><td>cos x</td><td>sin x + C</td></tr>
+          <tr><td>1/(1+x²)</td><td>arctan x + C</td></tr>
+          <tr><td>ax + b</td><td>a x²/2 + b x + C</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- EXERCISES -->
+  <div class="section-sep"></div>
+  <h2>Exercises (Interactive Hints)</h2>
+
+  <div class="exercise">
+    <div class="exercise-title">Exercise 1 – Power Rule</div>
+    <p>Compute ∫ x³ dx and verify by differentiating your answer.</p>
+    <button class="hint-btn" data-hint="hint1">Show hint</button>
+    <div id="hint1" class="hint">
+      Use ∫ xⁿ dx = xⁿ⁺¹/(n+1) + C with n = 3.
+    </div>
+  </div>
+
+  <div class="exercise">
+    <div class="exercise-title">Exercise 2 – Linear Function</div>
+    <p>Compute ∫ (2x + 1) dx and check with the symbolic integrator (ax+b).</p>
+    <button class="hint-btn" data-hint="hint2">Show hint</button>
+    <div id="hint2" class="hint">
+      Split as 2∫x dx + ∫1 dx.
+    </div>
+  </div>
+
+  <div class="exercise">
+    <div class="exercise-title">Exercise 3 – Sine and Cosine</div>
+    <p>Compute ∫ sin x dx and ∫ cos x dx, then differentiate to check.</p>
+    <button class="hint-btn" data-hint="hint3">Show hint</button>
+    <div id="hint3" class="hint">
+      Think backwards from derivatives of sin and cos.
+    </div>
+  </div>
+
+  <div class="exercise">
+    <div class="exercise-title">Exercise 4 – Area as Antiderivative</div>
+    <p>Use the numeric antiderivative tool with f(x) = sin x, x₀ = 0, x = π/2. Compare with the exact value.</p>
+    <button class="hint-btn" data-hint="hint4">Show hint</button>
+    <div id="hint4" class="hint">
+      ∫₀^{π/2} sin x dx = 1.
+    </div>
+  </div>
+</div>
+
+<script>
+  // --- Utility: parse expression (sin, cos, etc. without Math.) ---
+  function buildFunction(expr) {
+    let e = expr.replace(/\^/g, "**");
+    const funcs = ["sin","cos","tan","exp","log","sqrt","abs"];
+    funcs.forEach(fn => {
+      e = e.replace(new RegExp("Math\\." + fn + "\\(", "g"), "__MATH__" + fn + "(");
+    });
+    funcs.forEach(fn => {
+      e = e.replace(new RegExp("\\b" + fn + "\\(", "g"), "Math." + fn + "(");
+    });
+    funcs.forEach(fn => {
+      e = e.replace(new RegExp("__MATH__" + fn + "\\(", "g"), "Math." + fn + "(");
+    });
+    return new Function("x", "return " + e + ";");
+  }
+
+  // --- Symbolic integrator ---
+  const symbSelect = document.getElementById("symb-select");
+  const symbN = document.getElementById("symb-n");
+  const symbA = document.getElementById("symb-a");
+  const symbB = document.getElementById("symb-b");
+  const symbBtn = document.getElementById("symb-btn");
+  const symbOutput = document.getElementById("symb-output");
+
+  symbBtn.addEventListener("click", () => {
+    symbOutput.classList.remove("error");
+    try {
+      const kind = symbSelect.value;
+      let result = "";
+      if (kind === "x^n") {
+        const n = parseFloat(symbN.value);
+        if (!isFinite(n)) throw new Error("n must be a number");
+        if (Math.abs(n + 1) < 1e-12) {
+          result = "∫ x^(-1) dx = ln|x| + C";
+        } else {
+          result = "∫ x^" + n + " dx = x^" + (n+1) + "/(" + (n+1) + ") + C";
+        }
+      } else if (kind === "1/x") {
+        result = "∫ 1/x dx = ln|x| + C";
+      } else if (kind === "exp") {
+        result = "∫ e^x dx = e^x + C";
+      } else if (kind === "sin") {
+        result = "∫ sin x dx = −cos x + C";
+      } else if (kind === "cos") {
+        result = "∫ cos x dx = sin x + C";
+      } else if (kind === "1/(1+x^2)") {
+        result = "∫ 1/(1+x²) dx = arctan x + C";
+      } else if (kind === "ax+b") {
+        const a = parseFloat(symbA.value);
+        const b = parseFloat(symbB.value);
+        if (!isFinite(a) || !isFinite(b)) throw new Error("a and b must be numbers");
+        result = "∫ (" + a + "x + " + b + ") dx = " +
+                 a + " x²/2 + " + b + " x + C";
+      } else {
+        result = "Not implemented.";
+      }
+      symbOutput.textContent = result;
+    } catch (err) {
+      symbOutput.textContent = "Error: " + err.message;
+      symbOutput.classList.add("error");
+    }
+  });
+
+  // --- Numeric antiderivative (simple trapezoidal rule) ---
+  const numF = document.getElementById("num-f");
+  const numX0 = document.getElementById("num-x0");
+  const numX = document.getElementById("num-x");
+  const numBtn = document.getElementById("num-btn");
+  const numOutput = document.getElementById("num-output");
+
+  function numericIntegral(f, a, b, N) {
+    if (N < 1) N = 1;
+    const h = (b - a) / N;
+    let sum = 0;
+    for (let i = 0; i <= N; i++) {
+      const x = a + i * h;
+      const w = (i === 0 || i === N) ? 0.5 : 1;
+      sum += w * f(x);
+    }
+    return sum * h;
+  }
+
+  numBtn.addEventListener("click", () => {
+    numOutput.classList.remove("error");
+    try {
+      const expr = numF.value;
+      const f = buildFunction(expr);
+      const x0 = parseFloat(numX0.value);
+      const x = parseFloat(numX.value);
+      if (!isFinite(x0) || !isFinite(x)) throw new Error("x₀ and x must be numbers");
+      const N = 400;
+      const val = numericIntegral(f, x0, x, N);
+      numOutput.textContent =
+        "f(x) = " + expr +
+        "\nApproximate F(x) = ∫ from " + x0 + " to " + x + " f(t) dt" +
+        "\nF(x) ≈ " + val;
+    } catch (err) {
+      numOutput.textContent = "Error: " + err.message;
+      numOutput.classList.add("error");
+    }
+  });
+
+  // --- Plot f and shaded area ---
+  const plotXmin = document.getElementById("plot-xmin");
+  const plotXmax = document.getElementById("plot-xmax");
+  const plotFBtn = document.getElementById("plot-f-btn");
+  const plotFCanvas = document.getElementById("plot-f-canvas");
+  const plotFCtx = plotFCanvas.getContext("2d");
+
+  const plotFBtn2 = document.getElementById("plot-F-btn");
+  const plotFCanvas2 = document.getElementById("plot-F-canvas");
+  const plotFCtx2 = plotFCanvas2.getContext("2d");
+
+  function drawAxes(ctx, canvas, xmin, xmax, ymin, ymax) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "#050608";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.strokeStyle = "#1a2a1a";
+    ctx.lineWidth = 1;
+
+    const gridCount = 10;
+    for (let i = 0; i <= gridCount; i++) {
+      const t = i / gridCount;
+      const x = t * canvas.width;
+      const y = t * canvas.height;
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, canvas.height);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(canvas.width, y);
+      ctx.stroke();
+    }
+
+    ctx.strokeStyle = "#00ff7f";
+    ctx.lineWidth = 1.2;
+
+    if (ymin < 0 && ymax > 0) {
+      const y0 = canvas.height * (1 - (0 - ymin) / (ymax - ymin));
+      ctx.beginPath();
+      ctx.moveTo(0, y0);
+      ctx.lineTo(canvas.width, y0);
+      ctx.stroke();
+    }
+
+    if (xmin < 0 && xmax > 0) {
+      const x0 = canvas.width * (0 - xmin) / (xmax - xmin);
+      ctx.beginPath();
+      ctx.moveTo(x0, 0);
+      ctx.lineTo(x0, canvas.height);
+      ctx.stroke();
+    }
+  }
+
+  plotFBtn.addEventListener("click", () => {
+    try {
+      const expr = numF.value;
+      const f = buildFunction(expr);
+      const x0 = parseFloat(numX0.value);
+      const xmin = parseFloat(plotXmin.value);
+      const xmax = parseFloat(plotXmax.value);
+      if (!isFinite(xmin) || !isFinite(xmax) || xmin >= xmax) throw new Error("Invalid x-range");
+      if (!isFinite(x0)) throw new Error("x₀ must be a number");
+
+      const N = 400;
+      const xs = [];
+      const ys = [];
+      for (let i = 0; i < N; i++) {
+        const t = i / (N - 1);
+        const x = xmin + t * (xmax - xmin);
+        xs.push(x);
+        let y;
+        try { y = f(x); } catch { y = NaN; }
+        ys.push(isFinite(y) ? y : NaN);
+      }
+      const finite = ys.filter(v => isFinite(v));
+      if (!finite.length) throw new Error("No finite values to plot");
+      let ymin = Math.min(...finite), ymax = Math.max(...finite);
+      if (ymin === ymax) { ymin -= 1; ymax += 1; }
+
+      drawAxes(plotFCtx, plotFCanvas, xmin, xmax, ymin, ymax);
+
+      // plot f
+      plotFCtx.strokeStyle = "#00ff7f";
+      plotFCtx.lineWidth = 1.4;
+      plotFCtx.beginPath();
+      let started = false;
+      for (let i = 0; i < xs.length; i++) {
+        const x = xs[i];
+        const y = ys[i];
+        if (!isFinite(y)) { started = false; continue; }
+        const px = (x - xmin)/(xmax - xmin)*plotFCanvas.width;
+        const py = (1 - (y - ymin)/(ymax - ymin))*plotFCanvas.height;
+        if (!started) { plotFCtx.moveTo(px, py); started = true; }
+        else plotFCtx.lineTo(px, py);
+      }
+      plotFCtx.stroke();
+
+      // shade area from x0 to some x1 (use num-x as target)
+      const x1 = parseFloat(numX.value);
+      if (isFinite(x1)) {
+        const a = Math.min(x0, x1);
+        const b = Math.max(x0, x1);
+        const M = 200;
+        plotFCtx.fillStyle = "rgba(0,255,255,0.25)";
+        plotFCtx.beginPath();
+        for (let i = 0; i <= M; i++) {
+          const t = i / M;
+          const x = a + t * (b - a);
+          let y;
+          try { y = f(x); } catch { y = NaN; }
+          if (!isFinite(y)) continue;
+          const px = (x - xmin)/(xmax - xmin)*plotFCanvas.width;
+          const py = (1 - (y - ymin)/(ymax - ymin))*plotFCanvas.height;
+          if (i === 0) {
+            plotFCtx.moveTo(px, (1 - (0 - ymin)/(ymax - ymin))*plotFCanvas.height);
+            plotFCtx.lineTo(px, py);
+          } else {
+            plotFCtx.lineTo(px, py);
+          }
+        }
+        const pxEnd = (b - xmin)/(xmax - xmin)*plotFCanvas.width;
+        const pyAxis = (1 - (0 - ymin)/(ymax - ymin))*plotFCanvas.height;
+        plotFCtx.lineTo(pxEnd, pyAxis);
+        plotFCtx.closePath();
+        plotFCtx.fill();
+      }
+    } catch (err) {
+      plotFCtx.clearRect(0, 0, plotFCanvas.width, plotFCanvas.height);
+      plotFCtx.fillStyle = "#050608";
+      plotFCtx.fillRect(0, 0, plotFCanvas.width, plotFCanvas.height);
+      plotFCtx.fillStyle = "#ff4d4d";
+      plotFCtx.font = "12px " + getComputedStyle(document.body).fontFamily;
+      plotFCtx.fillText("Error: " + err.message, 10, 20);
+    }
+  });
+
+  // --- Plot F(x) as numeric antiderivative ---
+  plotFBtn2.addEventListener("click", () => {
+    try {
+      const expr = numF.value;
+      const f = buildFunction(expr);
+      const x0 = parseFloat(numX0.value);
+      const xmin = parseFloat(plotXmin.value);
+      const xmax = parseFloat(plotXmax.value);
+      if (!isFinite(xmin) || !isFinite(xmax) || xmin >= xmax) throw new Error("Invalid x-range");
+      if (!isFinite(x0)) throw new Error("x₀ must be a number");
+
+      const N = 200;
+      const xs = [];
+      const Fs = [];
+      let ymin = Infinity, ymax = -Infinity;
+      for (let i = 0; i < N; i++) {
+        const t = i / (N - 1);
+        const x = xmin + t * (xmax - xmin);
+        xs.push(x);
+        let val;
+        try { val = numericIntegral(f, x0, x, 200); } catch { val = NaN; }
+        Fs.push(isFinite(val) ? val : NaN);
+        if (isFinite(val)) {
+          if (val < ymin) ymin = val;
+          if (val > ymax) ymax = val;
+        }
+      }
+      if (!isFinite(ymin) || !isFinite(ymax)) throw new Error("No finite values to plot");
+      if (ymin === ymax) { ymin -= 1; ymax += 1; }
+
+      drawAxes(plotFCtx2, plotFCanvas2, xmin, xmax, ymin, ymax);
+
+      plotFCtx2.strokeStyle = "#ffff66";
+      plotFCtx2.lineWidth = 1.4;
+      plotFCtx2.beginPath();
+      let started = false;
+      for (let i = 0; i < xs.length; i++) {
+        const x = xs[i];
+        const y = Fs[i];
+        if (!isFinite(y)) { started = false; continue; }
+        const px = (x - xmin)/(xmax - xmin)*plotFCanvas2.width;
+        const py = (1 - (y - ymin)/(ymax - ymin))*plotFCanvas2.height;
+        if (!started) { plotFCtx2.moveTo(px, py); started = true; }
+        else plotFCtx2.lineTo(px, py);
+      }
+      plotFCtx2.stroke();
+    } catch (err) {
+      plotFCtx2.clearRect(0, 0, plotFCanvas2.width, plotFCanvas2.height);
+      plotFCtx2.fillStyle = "#050608";
+      plotFCtx2.fillRect(0, 0, plotFCanvas2.width, plotFCanvas2.height);
+      plotFCtx2.fillStyle = "#ff4d4d";
+      plotFCtx2.font = "12px " + getComputedStyle(document.body).fontFamily;
+      plotFCtx2.fillText("Error: " + err.message, 10, 20);
+    }
+  });
+
+  // Hints
+  document.querySelectorAll(".hint-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const id = btn.getAttribute("data-hint");
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.style.display = el.style.display === "block" ? "none" : "block";
+    });
+  });
+
+  // Initial runs
+  symbBtn.click();
+  numBtn.click();
+  plotFBtn.click();
+  plotFBtn2.click();
+</script>
+</body>
+</html>
+
