@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Math Lectures Reloaded – Index</title>
+<style>
+  :root {
+    --bg: #050608;
+    --bg-alt: #0b0f14;
+    --accent: #00ff7f;
+    --accent-soft: #00ff7f33;
+    --text: #e5ffe5;
+    --muted: #7fbf7f;
+    --border: #1a2a1a;
+    --font-mono: "Fira Code", "JetBrains Mono", Menlo, Consolas, monospace;
+  }
+  body {
+    margin: 0;
+    padding: 0;
+    background: radial-gradient(circle at top, #101820 0, #050608 55%);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 15px;
+  }
+  .scanline {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+      to bottom,
+      rgba(0,0,0,0.15),
+      rgba(0,0,0,0.15) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+    mix-blend-mode: soft-light;
+    opacity: 0.4;
+    z-index: 999;
+  }
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 24px 18px 80px;
+  }
+  .header {
+    border: 1px solid var(--border);
+    background: linear-gradient(135deg, #050608 0, #0b0f14 60%, #050608 100%);
+    padding: 20px 22px;
+    margin-bottom: 24px;
+    box-shadow: 0 0 18px #00ff7f22;
+  }
+  .header-title {
+    color: var(--accent);
+    font-size: 24px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  .header-sub {
+    color: var(--muted);
+    margin-top: 6px;
+    font-size: 14px;
+  }
+  .badge {
+    display: inline-block;
+    border: 1px solid var(--accent-soft);
+    color: var(--accent);
+    padding: 3px 10px;
+    margin-top: 10px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 18px;
+  }
+  .card {
+    border: 1px solid var(--border);
+    background: radial-gradient(circle at top left, #101820 0, #050608 55%);
+    padding: 16px 18px 20px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 0 12px #00ff7f11;
+  }
+  .card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, transparent 0, #00ff7f11 40%, transparent 100%);
+    opacity: 0.4;
+    pointer-events: none;
+  }
+  .card-title {
+    color: var(--accent);
+    font-size: 16px;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    margin-bottom: 6px;
+  }
+  .card-title a {
+    color: var(--accent);
+    text-decoration: none;
+  }
+  .card-title a:hover {
+    text-decoration: underline;
+  }
+  .card p {
+    color: var(--text);
+    font-size: 14px;
+    margin: 6px 0;
+  }
+  .small {
+    color: var(--muted);
+    font-size: 12px;
+    margin-top: 4px;
+  }
+</style>
+</head>
+<body>
+<div class="scanline"></div>
+<div class="container">
+
+  <div class="header">
+    <div class="header-title">Math Lectures Reloaded</div>
+    <div class="header-sub">Interactive Calculus Notebooks · Terminal Aesthetic · Smirnov‑Inspired</div>
+    <div class="badge">Index Page</div>
+  </div>
+
+  <div class="grid">
+
+    <!-- Notebook 1 -->
+    <div class="card">
+      <div class="card-title"><a href="notebook1_variables_functions.html">1 · Variables & Functions</a></div>
+      <p>The language of calculus: variables, domains, ranges, and functional thinking.</p>
+      <div class="small">Foundations · Functions · Algebra</div>
+    </div>
+
+    <!-- Notebook 2 -->
+    <div class="card">
+      <div class="card-title"><a href="notebook2_graphs_equations.html">2 · Graphs & Equations</a></div>
+      <p>Visualizing functions, solving equations, and understanding geometric meaning.</p>
+      <div class="small">Graphs · Geometry · Algebra</div>
+    </div>
+
+    <!-- Notebook 3 -->
+    <div class="card">
+      <div class="card-title"><a href="notebook3_limits_continuity.html">3 · Limits & Continuity</a></div>
+      <p>The core of analysis: limits, continuity, and behavior near critical points.</p>
+      <div class="small">Limits · Continuity · Analysis</div>
+    </div>
+
+    <!-- Notebook 4 -->
+    <div class="card">
+      <div class="card-title"><a href="notebook4_derivatives_first_principles.html">4 · Derivatives from First Principles</a></div>
+      <p>Derivatives built from the limit definition. No shortcuts — pure fundamentals.</p>
+      <div class="small">Definition · Tangents · Slopes</div>
+    </div>
+
+    <!-- Notebook 5 -->
+    <div class="card">
+      <div class="card-title"><a href="notebook5_rules_of_differentiation.html">5 · Rules of Differentiation</a></div>
+      <p>Chain rule, product rule, quotient rule — the essential derivative toolkit.</p>
+      <div class="small">Chain Rule · Techniques</div>
+    </div>
+
+    <!-- Notebook 6 -->
+    <div class="card">
+      <div class="card-title"><a href="notebook6_higher_derivatives_concavity.html">6 · Higher Derivatives & Concavity</a></div>
+      <p>Curvature, concavity, inflection points, and geometric interpretation.</p>
+      <div class="small">Concavity · Curvature</div>
+    </div>
+
+    <!-- Notebook 7 -->
+    <div class="card">
+      <div class="card-title"><a href="notebook7_extrema_critical_points.html">7 · Extrema & Critical Points</a></div>
+      <p>Finding maxima, minima, and saddle points using derivative tests.</p>
+      <div class="small">Optimization · Critical Points</div>
+    </div>
+
+    <!-- Notebook 8 -->
+    <div class="card">
+      <div class="card-title"><a href="notebook8_optimization_problems.html">8 · Optimization Problems</a></div>
+      <p>Applied optimization: geometric problems, constraints, and modeling.</p>
+      <div class="small">Applications · Modeling</div>
+    </div>
+
+    <!-- Notebook 9 -->
+    <div class="card">
+      <div class="card-title"><a href="notebook9_mvt_inequalities.html">9 · MVT & Inequalities</a></div>
+      <p>Rolle, Lagrange, Cauchy — the theorems that control function behavior.</p>
+      <div class="small">MVT · Inequalities</div>
+    </div>
+
+    <!-- Notebook 10 -->
+    <div class="card">
+      <div class="card-title"><a href="notebook10_taylor_polynomials.html">10 · Taylor Polynomials</a></div>
+      <p>Local polynomial approximations and the first step toward Taylor series.</p>
+      <div class="small">Taylor · Approximation</div>
+    </div>
+
+    <!-- Notebook 11 -->
+    <div class="card">
+      <div class="card-title"><a href="notebook11_indefinite_integrals.html">11 · Indefinite Integrals</a></div>
+      <p>Antiderivatives, substitution, and reversing differentiation.</p>
+      <div class="small">Antiderivatives · Substitution</div>
+    </div>
+
+    <!-- Notebook 12 -->
+    <div class="card">
+      <div class="card-title"><a href="notebook12_definite_integrals.html">12 · Definite Integrals</a></div>
+      <p>Area, accumulation, and the rigorous definition of the integral.</p>
+      <div class="small">Riemann Sums · Area</div>
+    </div>
+
+    <!-- Notebook 13 -->
+    <div class="card">
+      <div class="card-title"><a href="notebook13_fundamental_theorem.html">13 · Fundamental Theorem of Calculus</a></div>
+      <p>The bridge between derivatives and integrals — the core of calculus.</p>
+      <div class="small">FTC · Accumulation</div>
+    </div>
+
+    <!-- Notebook 14 -->
+    <div class="card">
+      <div class="card-title"><a href="notebook14_methods_of_integration.html">14 · Methods of Integration</a></div>
+      <p>Substitution, integration by parts, and classical integration techniques.</p>
+      <div class="small">Substitution · Parts</div>
+    </div>
+
+    <!-- Notebook 15 -->
+    <div class="card">
+      <div class="card-title"><a href="notebook15_special_improper_integrals.html">15 · Special & Improper Integrals</a></div>
+      <p>Infinite limits, singularities, convergence, and special integrals.</p>
+      <div class="small">Improper · Convergence</div>
+    </div>
+
+    <!-- Notebook 16 -->
+    <div class="card">
+      <div class="card-title"><a href="notebook16_sequences_series.html">16 · Sequences & Series</a></div>
+      <p>Infinite processes: convergence, divergence, partial sums, and tests.</p>
+      <div class="small">Series · Convergence</div>
+    </div>
+
+    <!-- Notebook 18 -->
+    <div class="card">
+      <div class="card-title"><a href="notebook18_applications_of_taylor.html">18 · Applications of Taylor</a></div>
+      <p>Limits, asymptotics, local models, and Taylor‑based approximations.</p>
+      <div class="small">Asymptotics · Taylor</div>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>
