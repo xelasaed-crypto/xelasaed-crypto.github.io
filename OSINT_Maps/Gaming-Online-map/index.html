@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Global Online Gaming: Regulation & Market Overview</title>
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+
+  <!-- Shared CSS (themeable) -->
+  <link rel="stylesheet" href="../shared/css/style.css"/>
+
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet"/>
+</head>
+<body>
+  <div id="loader">
+    <div class="loader-spinner"></div>
+    <div class="loader-text">LOADING GLOBAL ONLINE GAMING DATA...</div>
+  </div>
+
+  <div id="bg-layer"></div>
+  <div class="scanlines"></div>
+  <div class="grid-overlay"></div>
+
+  <div id="map"></div>
+
+  <div id="sidePanel">
+    <div class="panel-header">
+      <h2 id="countryName">Select a Country</h2>
+      <button id="closeBtn">×</button>
+    </div>
+    <div id="panelContent" class="panel-body">
+      <p style="color:#aaa; text-align:center;">Click a country to view global online gaming details.</p>
+    </div>
+  </div>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- ── Map Configuration ──────────────────────────────── -->
+  <script>
+    window.mapConfig = {
+        topicDataKey:  "gamingData", // Changed from "aiData"
+        geoJsonUrl:    "https://cdn.jsdelivr.net/gh/johan/world.geo.json@master/countries.geo.json",
+        highlightColor: "#00f3ff",
+        defaultColor:  "#00f3ff",
+        
+        // Custom section titles for the gaming map
+        sectionTitles: {
+            fields: "Regulatory Overview",
+            notes:  "Market Details & Investigations",
+            refs:   "Sources & Legislation"
+        },
+
+        // Expanded fields to show all the new data points
+        panelFields: [
+            { label: "Status",         value: "status" },
+            { label: "Legality",       value: "legality" },
+            { label: "Regulator",      value: "regulation" },
+            { label: "Restrictions",   value: "restrictions" },
+            { label: "Major Operators",value: "companies" },
+            { label: "Industry Ties",  value: "businessRelations" },
+            { label: "Investigations", value: "investigations" }
+        ],
+        panelNotes: true,
+        panelRefs:  true,
+        emptyMsg:   "Data Pending"
+    };
+  </script>
+
+  <!-- Data Layer -->
+  <script src="js/data/references.js"></script>
+  <script src="js/data/countries/USA.js"></script>
+  <script src="js/data/countries/China.js"></script>
+  <script src="js/data/countries/Russia.js"></script>
+  <script src="js/data/countries/France.js"></script>
+  <script src="js/data/countries/Germany.js"></script>
+  <script src="js/data/countries/Japan.js"></script>
+  <script src="js/data/countries/UnitedKingdom.js"></script>
+  <script src="js/data/countries/Italy.js"></script>
+  <script src="js/data/countries/Spain.js"></script>
+  <script src="js/data/countries/Canada.js"></script>
+  <script src="js/data/countries/NewZealand.js"></script>
+  <script src="js/data/countries/Brazil.js"></script>
+  <script src="js/data/countries/Norway.js"></script>
+  <script src="js/data/countries/Sweden.js"></script>
+  <script src="js/data/countries/Finland.js"></script>
+  <script src="js/data/countries/Poland.js"></script>
+  <script src="js/data/countries/Portugal.js"></script>
+  <script src="js/data/countries/SaudiArabia.js"></script>
+  <script src="js/data/countries/Israel.js"></script>
+  <script src="js/data/countries/Singapore.js"></script>
+  <script src="js/data/countries/Taiwan.js"></script>
+  <script src="js/data/countries/SouthKorea.js"></script>
+  <script src="js/data/countries/NorthKorea.js"></script>
+  <script src="js/data/countries/Argentina.js"></script>
+  <script src="js/data/countries/Mexico.js"></script>
+  <script src="js/data/countries/Ireland.js"></script>
+  <script src="js/data/countries/Australia.js"></script>
+  <script src="js/data/countries/CzechRepublic.js"></script>
+  <script src="js/data/countries/SouthAfrica.js"></script>
+  <script src="js/data/countries/Egypt.js"></script>
+  <script src="js/data/countries/India.js"></script>
+  <script src="js/data/countries/Turkey.js"></script>
+  <script src="js/data/countries/Colombia.js"></script>
+  <script src="js/data/countries/Belgium.js"></script>
+  <script src="js/data/countries/Netherlands.js"></script>
+  <script src="js/data/countries/UAE.js"></script>
+  <script src="js/data/countries/Indonesia.js"></script>
+  <script src="js/data/countries/Switzerland.js"></script>
+  <script src="js/data/countries/Morocco.js"></script>
+  <script src="js/data/countries/Algeria.js"></script>
+  <script src="js/data/countries/Pakistan.js"></script>
+  <script src="js/data/countries/Vietnam.js"></script>
+  <script src="js/data/countries/Malaysia.js"></script>
+  <script src="js/data/countries/Malta.js"></script>
+  <script src="js/data/countries/Nigeria.js"></script>
+  <script src="js/data/countries/Kenya.js"></script>
+  <script src="js/data/countries/Ukraine.js"></script>
+  <script src="js/data/countries/Belarus.js"></script>
+  <script src="js/data/countries/Estonia.js"></script>
+  <script src="js/data/countries/Lithuania.js"></script>
+  <script src="js/data/countries/Oman.js"></script>
+  <script src="js/data/countries/Austria.js"></script>
+  <script src="js/data/countries/Serbia.js"></script>
+  <script src="js/data/countries/Greece.js"></script>
+  <script src="js/data/countries/Romania.js"></script>
+  <script src="js/data/countries/Albania.js"></script>
+  <script src="js/data/countries/Thailand.js"></script>
+  <script src="js/data/countries/Iceland.js"></script>
+  <script src="js/data/countries/Peru.js"></script>
+  <script src="js/data/countries/Philippines.js"></script>
+  <script src="js/data/countries/Chile.js"></script>
+  <script src="js/data/countries/Paraguay.js"></script>
+  <script src="js/data/countries/Uruguay.js"></script>
+  <script src="js/data/countries/Iran.js"></script>
+  <script src="js/data/countries/Mongolia.js"></script>
+  <script src="js/data/countries/Denmark.js"></script>
+  <!-- Aggregator -->
+  <script src="js/data/gamingData.js"></script>
+
+  <!-- Shared Engine -->
+  <script src="../shared/js/main.js"></script>
+</body>
+</html>
