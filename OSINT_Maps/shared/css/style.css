@@ -1,0 +1,433 @@
+/* ============================================================
+   OSINT Maps — Shared Styles
+   Themeable via CSS Custom Properties set in each map's index.html
+   ============================================================ */
+
+:root {
+    /* Default theme (override per-map) */
+    --accent:        #00f3ff;
+    --accent-dim:    rgba(0, 243, 255, 0.3);
+    --accent-glow:   0 0 10px rgba(0, 243, 255, 0.5);
+    --secondary:     #00ff9d;
+    --alert:         #ff4d4d;
+    --warning:       #ff8c00;
+    --dark-bg:       #050510;
+    --panel-bg:      rgba(10, 15, 30, 0.95);
+    --border-color:  rgba(0, 243, 255, 0.3);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body, html {
+    height: 100%;
+    width: 100%;
+    background-color: var(--dark-bg);
+    font-family: 'Rajdhani', sans-serif;
+    overflow: hidden;
+    color: #fff;
+}
+
+/* ── Background Effects ────────────────────────────────── */
+#bg-layer {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: radial-gradient(ellipse at center, #0a1020 0%, #050510 100%);
+    z-index: 0;
+}
+
+.scanlines {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: repeating-linear-gradient(
+        0deg,
+        rgba(0, 0, 0, 0.1) 0px,
+        rgba(0, 0, 0, 0.1) 1px,
+        transparent 1px,
+        transparent 2px
+    );
+    z-index: 1;
+    pointer-events: none;
+    opacity: 0.3;
+}
+
+.grid-overlay {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background-image:
+        linear-gradient(var(--accent-dim) 1px, transparent 1px),
+        linear-gradient(90deg, var(--accent-dim) 1px, transparent 1px);
+    background-size: 50px 50px;
+    z-index: 1;
+    pointer-events: none;
+}
+
+/* ── Map ────────────────────────────────────────────────── */
+#map {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 2;
+    background: transparent;
+}
+
+.leaflet-container {
+    background: transparent;
+}
+
+.leaflet-control-zoom {
+    border: 1px solid var(--accent);
+    background: var(--panel-bg);
+    box-shadow: 0 0 15px var(--accent-dim);
+}
+
+.leaflet-control-zoom a {
+    color: var(--accent);
+    font-family: 'Orbitron', sans-serif;
+    background: transparent;
+}
+
+.leaflet-control-zoom a:hover {
+    background: var(--accent-dim);
+    color: #fff;
+}
+
+.country-path {
+    fill: var(--accent-dim);
+    stroke: var(--accent);
+    stroke-width: 1;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.country-path:hover {
+    fill: var(--accent-dim);
+    stroke: #fff;
+    stroke-width: 2;
+    filter: drop-shadow(0 0 10px var(--accent));
+}
+
+.country-path.selected {
+    fill: var(--accent-dim);
+    stroke: #fff;
+    stroke-width: 2;
+    filter: drop-shadow(0 0 20px var(--accent));
+}
+
+/* ── Side Panel ─────────────────────────────────────────── */
+#sidePanel {
+    position: fixed !important;
+    top: 0; right: 0;
+    width: 380px;
+    height: 100vh;
+    background: var(--panel-bg);
+    z-index: 9999 !important;
+    transform: translateX(100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: -5px 0 25px rgba(0, 0, 0, 0.5);
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+#sidePanel.active {
+    transform: translateX(0);
+}
+
+.panel-header {
+    padding: 20px 25px;
+    border-bottom: 1px solid var(--border-color);
+    background: linear-gradient(90deg, var(--accent-dim), transparent);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+#countryName {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.5rem;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    text-shadow: var(--accent-glow);
+}
+
+#closeBtn {
+    position: sticky;
+    top: 0;
+    z-index: 10000;
+    background: transparent;
+    border: 1px solid var(--alert);
+    color: var(--alert);
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.2rem;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#closeBtn:hover {
+    background: var(--alert);
+    color: #fff;
+    box-shadow: 0 0 15px var(--alert);
+}
+
+.panel-body {
+    padding: 25px;
+    flex: 1;
+    overflow-y: auto;
+}
+
+/* ── Info Sections ──────────────────────────────────────── */
+.info-section {
+    margin-bottom: 20px;
+    padding: 15px;
+    background: var(--accent-dim);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+}
+
+.info-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.9rem;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 5px;
+}
+
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.info-label {
+    color: #888;
+    font-weight: 500;
+}
+
+.info-value {
+    color: #fff;
+    font-weight: 700;
+}
+
+/* ── Reference List ─────────────────────────────────────── */
+.ref-list {
+    list-style: none;
+    padding: 0;
+}
+
+.ref-item {
+    margin-bottom: 10px;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.3);
+    border-left: 3px solid var(--warning);
+    font-size: 0.9rem;
+}
+
+.ref-item strong {
+    color: var(--warning);
+    display: block;
+    margin-bottom: 4px;
+}
+
+.ref-item a {
+    color: var(--accent);
+    text-decoration: none;
+    word-break: break-all;
+}
+
+.ref-item a:hover {
+    text-decoration: underline;
+}
+
+/* ── Loader ─────────────────────────────────────────────── */
+#loader {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: var(--dark-bg);
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    transition: opacity 1s ease;
+}
+
+.loader-spinner {
+    width: 80px;
+    height: 80px;
+    border: 3px solid var(--accent-dim);
+    border-radius: 50%;
+    border-top-color: var(--accent);
+    animation: spin 1s linear infinite;
+    box-shadow: 0 0 30px var(--accent-dim);
+}
+
+.loader-text {
+    font-family: 'Orbitron', sans-serif;
+    color: var(--accent);
+    margin-top: 25px;
+    letter-spacing: 3px;
+    font-size: 0.9rem;
+    animation: blink 1s infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+@keyframes blink {
+    50% { opacity: 0.5; }
+}
+
+/* ── Scrollbar ──────────────────────────────────────────── */
+#sidePanel::-webkit-scrollbar { width: 6px; }
+#sidePanel::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.3); }
+#sidePanel::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 3px; }
+
+/* ── Responsive ─────────────────────────────────────────── */
+@media (max-width: 768px) {
+    #sidePanel {
+        width: 100%;
+        transform: translateX(100%);
+    }
+}
+
+
+/* ============================================================
+   SIDE PANEL TYPOGRAPHY & READABILITY
+   ============================================================ */
+
+#sidePanel .panel-body {
+    font-family: 'Inter', sans-serif;
+    color: #e2e8f0; /* Soft, readable white (not harsh pure white) */
+    line-height: 1.6;
+    font-size: 0.95rem;
+    padding: 20px;
+}
+
+/* Section Titles (Status, Market Details, Sources) */
+#sidePanel .info-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: #00f3ff; /* Your accent color */
+    border-bottom: 1px solid rgba(0, 243, 255, 0.3);
+    padding-bottom: 8px;
+    margin-bottom: 16px;
+    margin-top: 24px;
+}
+
+/* Remove top margin for the very first section */
+#sidePanel .info-section:first-child .info-title {
+    margin-top: 0;
+}
+
+/* Key-Value Rows */
+#sidePanel .info-row {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 16px;
+    gap: 4px;
+}
+
+/* On wider screens, put label and value side-by-side */
+@media (min-width: 400px) {
+    #sidePanel .info-row {
+        flex-direction: row;
+        gap: 16px;
+    }
+}
+
+#sidePanel .info-label {
+    font-weight: 600;
+    color: #94a3b8; /* Muted slate gray for labels */
+    min-width: 130px;
+    flex-shrink: 0;
+}
+
+#sidePanel .info-value {
+    color: #f8fafc; /* Bright, highly readable text */
+    font-weight: 400;
+}
+
+/* Notes Paragraphs */
+#sidePanel .info-section p {
+    color: #cbd5e1;
+    margin: 0;
+    text-align: left; /* Easier to read than justify on screens */
+}
+
+/* ============================================================
+   REFERENCES SECTION STYLING
+   ============================================================ */
+
+#sidePanel .ref-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* Make each reference look like a clean, modern data card */
+#sidePanel .ref-item {
+    background: rgba(255, 255, 255, 0.04);
+    border-left: 3px solid #00f3ff;
+    border-radius: 0 6px 6px 0;
+    padding: 14px 16px;
+    font-size: 0.9rem;
+    color: #cbd5e1;
+    transition: background 0.2s ease, transform 0.2s ease;
+}
+
+#sidePanel .ref-item:hover {
+    background: rgba(255, 255, 255, 0.08);
+    transform: translateX(4px);
+}
+
+#sidePanel .ref-item strong {
+    color: #f8fafc;
+    display: block;
+    margin-bottom: 6px;
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+
+/* Source Link Styling */
+#sidePanel .ref-item a {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 8px;
+    color: #00f3ff;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.85rem;
+    transition: color 0.2s ease;
+}
+
+#sidePanel .ref-item a:hover {
+    color: #66ffff;
+    text-decoration: underline;
+}
