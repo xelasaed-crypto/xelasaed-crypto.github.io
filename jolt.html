@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>JOLT CONSOLE — Keep-Awake Operations</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👁️</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#080d1c; --panel:#0e1630; --panel2:#121d3f;
+  --line:#26325e; --line2:#41519c;
+  --ink:#eef2ff; --dim:#8b96c4; --faint:#4a5688;
+  --yellow:#ffd41f; --red:#ff4e2e; --aqua:#2fe6c8; --orange:#ff9d2e;
+  --display:'Anton',sans-serif; --mono:'Space Mono',monospace; --body:'Atkinson Hyperlegible',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:var(--body); color:var(--ink); background:var(--bg);
+  background-image:
+    radial-gradient(900px 500px at 12% -8%, rgba(255,212,31,.10), transparent 60%),
+    radial-gradient(800px 600px at 105% 110%, rgba(255,78,46,.09), transparent 60%),
+    radial-gradient(700px 400px at 82% 8%, rgba(47,230,200,.06), transparent 60%),
+    radial-gradient(rgba(255,255,255,.045) 1px, transparent 1px);
+  background-size:auto,auto,auto,26px 26px;
+  min-height:100vh; overflow-x:hidden;
+}
+::selection{background:var(--yellow);color:#111}
+
+/* ---------- ambient drifting Zs ---------- */
+.zz span{
+  position:fixed; bottom:-8vh; font-family:var(--display); color:#2a3766;
+  opacity:.35; pointer-events:none; z-index:0; animation:drift 34s linear infinite;
+}
+@keyframes drift{
+  0%{transform:translateY(0) rotate(-6deg)}
+  50%{transform:translateY(-58vh) rotate(8deg)}
+  100%{transform:translateY(-118vh) rotate(-4deg);opacity:0}
+}
+
+/* ---------- top bar ---------- */
+.wrap{max-width:1280px;margin:0 auto;padding:0 20px;position:relative;z-index:2}
+.topbar{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;padding-top:26px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:14px}
+.brand-eye{width:44px;height:44px;flex:none}
+.brand-eye svg{width:100%;height:100%}
+.brand-eye .lid{animation:brandblink 5.2s infinite}
+@keyframes brandblink{0%,93%,100%{transform:translateY(-46px)}95.5%{transform:translateY(-14px)}}
+h1{font-family:var(--display);font-size:clamp(30px,4.6vw,52px);letter-spacing:.02em;line-height:.95}
+h1 .yl{color:var(--yellow)}
+.tagline{font-family:var(--mono);font-size:10px;letter-spacing:.34em;color:var(--dim);margin-top:6px}
+.clockbox{text-align:right}
+#clock{font-family:var(--mono);font-weight:700;font-size:clamp(26px,3.4vw,40px);letter-spacing:.04em;color:var(--yellow);text-shadow:0 0 22px rgba(255,212,31,.35)}
+#dateline{font-family:var(--mono);font-size:10px;letter-spacing:.28em;color:var(--dim);margin-top:4px}
+
+.hazard{height:10px;margin:18px 0 22px;
+  background:repeating-linear-gradient(45deg,var(--yellow) 0 14px,#10152c 14px 28px);
+  border:2px solid #05080f}
+.hazard.red{background:repeating-linear-gradient(45deg,var(--red) 0 14px,#10152c 14px 28px)}
+
+/* ---------- layout ---------- */
+.deck{display:grid;grid-template-columns:390px 1fr;gap:20px;align-items:start}
+.col-left{position:sticky;top:16px}
+.col-right{display:grid;gap:20px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media(max-width:1080px){.deck{grid-template-columns:1fr}.col-left{position:static}}
+@media(max-width:680px){.row2{grid-template-columns:1fr}}
+
+/* ---------- panels ---------- */
+.panel{
+  background:linear-gradient(180deg,#101a3a,#0c1430);
+  border:2px solid var(--line); border-radius:12px;
+  box-shadow:0 14px 30px rgba(0,0,0,.38), inset 0 1px 0 rgba(255,255,255,.04);
+  transition:border-color .25s, transform .25s;
+}
+.panel:hover{border-color:var(--line2)}
+.panel-h{
+  display:flex;align-items:center;gap:10px;padding:11px 16px;
+  border-bottom:2px solid var(--line);
+  font-family:var(--mono);font-size:11px;letter-spacing:.22em;color:var(--dim);text-transform:uppercase;
+}
+.panel-h .note{margin-left:auto;letter-spacing:.08em;color:var(--faint);font-size:10px;text-transform:none}
+.panel-b{padding:18px 16px}
+.led{width:9px;height:9px;border-radius:50%;background:var(--aqua);box-shadow:0 0 10px var(--aqua);animation:pulse 1.8s infinite;flex:none}
+.led.warn{background:var(--yellow);box-shadow:0 0 10px var(--yellow)}
+.led.crit{background:var(--orange);box-shadow:0 0 10px var(--orange)}
+.led.dead{background:var(--red);box-shadow:0 0 12px var(--red);animation:pulse .5s infinite}
+@keyframes pulse{50%{opacity:.35}}
+
+/* ---------- eye ---------- */
+#eyeSvg{width:100%;max-width:330px;display:block;margin:6px auto 2px}
+.statusline{text-align:center;margin-top:2px}
+#statusText{font-family:var(--display);font-size:22px;letter-spacing:.08em}
+#statusText.ok{color:var(--aqua)} #statusText.warn{color:var(--yellow)}
+#statusText.crit{color:var(--orange)} #statusText.dead{color:var(--red);animation:pulse .6s infinite}
+.status-sub{font-family:var(--mono);font-size:10px;letter-spacing:.2em;color:var(--faint);text-align:center;margin-top:2px}
+
+/* meter */
+.meterwrap{display:flex;align-items:center;gap:14px;margin-top:14px}
+.meter{flex:1;height:28px;border:2px solid var(--line);background:#0a1126;padding:3px;display:flex;gap:3px;overflow:hidden}
+.seg{flex:1;background:#182350;transform:skewX(-14deg);transition:background .4s, box-shadow .4s}
+.seg.lit.ok{background:var(--aqua);box-shadow:0 0 8px rgba(47,230,200,.5)}
+.seg.lit.warn{background:var(--yellow);box-shadow:0 0 8px rgba(255,212,31,.5)}
+.seg.lit.crit{background:var(--orange);box-shadow:0 0 8px rgba(255,157,46,.55)}
+.seg.lit.dead{background:var(--red);box-shadow:0 0 10px rgba(255,78,46,.6)}
+#alertNum{font-family:var(--display);font-size:56px;line-height:1;min-width:118px;text-align:right}
+#alertNum small{font-size:22px;opacity:.7}
+#alertNum.ok{color:var(--aqua)} #alertNum.warn{color:var(--yellow)}
+#alertNum.crit{color:var(--orange)} #alertNum.dead{color:var(--red)}
+
+/* session / target */
+.sessrow{display:flex;justify-content:space-between;align-items:baseline;margin-top:16px;gap:8px}
+.lab{font-family:var(--mono);font-size:10px;letter-spacing:.22em;color:var(--faint)}
+.mono{font-family:var(--mono)}
+#elapsed{font-family:var(--mono);font-weight:700;font-size:20px;color:var(--ink)}
+.holdrow{margin-top:12px;border-top:1px dashed var(--line);padding-top:12px}
+.chips{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+.chip{font-family:var(--mono);font-size:11px;padding:6px 10px;background:var(--panel2);border:2px solid var(--line);color:var(--dim);cursor:pointer;border-radius:6px;transition:.15s}
+.chip:hover{color:var(--yellow);border-color:var(--yellow);transform:translateY(-2px)}
+#targetOut{font-family:var(--mono);font-size:15px;color:var(--aqua);margin-top:8px;min-height:20px}
+
+/* stats */
+.statgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:16px;border-top:1px dashed var(--line);padding-top:14px}
+.stat{text-align:center;background:#0a1126;border:1px solid var(--line);border-radius:8px;padding:8px 4px}
+.stat b{font-family:var(--display);font-size:24px;display:block;color:var(--yellow)}
+.stat span{font-family:var(--mono);font-size:9px;letter-spacing:.14em;color:var(--faint)}
+
+/* ---------- dead man's switch ---------- */
+.dm{display:flex;align-items:center;gap:26px;flex-wrap:wrap}
+.ringbox{position:relative;width:128px;height:128px;flex:none}
+.ringbox svg{transform:rotate(-90deg)}
+.ringnum{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ringnum b{font-family:var(--mono);font-size:24px;color:var(--yellow)}
+.ringnum span{font-family:var(--mono);font-size:8px;letter-spacing:.2em;color:var(--faint)}
+.dm-main{flex:1;min-width:220px}
+.btn-up{
+  width:100%;font-family:var(--display);font-size:30px;letter-spacing:.06em;
+  background:var(--yellow);color:#141414;border:none;border-bottom:7px solid #b98d00;
+  padding:14px;cursor:pointer;border-radius:10px;transition:.12s;
+  text-shadow:0 1px 0 rgba(255,255,255,.4);
+}
+.btn-up:hover{filter:brightness(1.08);transform:translateY(-2px);border-bottom-width:9px}
+.btn-up:active{transform:translateY(4px);border-bottom-width:2px}
+.dm-ctl{display:flex;gap:14px;align-items:center;margin-top:14px;flex-wrap:wrap;font-family:var(--mono);font-size:11px;color:var(--dim)}
+select{background:var(--panel2);color:var(--ink);border:2px solid var(--line);border-radius:6px;font-family:var(--mono);font-size:12px;padding:5px 8px}
+.switch{position:relative;display:inline-block;width:48px;height:24px;cursor:pointer}
+.switch input{display:none}
+.switch i{position:absolute;inset:0;background:#1a2450;border:2px solid var(--line);border-radius:20px;transition:.2s}
+.switch i::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:var(--faint);transition:.2s}
+.switch input:checked + i{background:rgba(47,230,200,.15);border-color:var(--aqua)}
+.switch input:checked + i::after{left:26px;background:var(--aqua);box-shadow:0 0 8px var(--aqua)}
+.kbd{border:1px solid var(--line2);border-bottom-width:3px;border-radius:4px;padding:1px 6px;font-size:10px;color:var(--ink)}
+
+/* ---------- stim station ---------- */
+.stim{display:flex;gap:22px;align-items:center;flex-wrap:wrap}
+.stim-left{flex:1;min-width:260px;display:grid;gap:14px}
+.seg-ctl{display:flex;border:2px solid var(--line);border-radius:8px;overflow:hidden;width:max-content}
+.seg-ctl button{font-family:var(--mono);font-size:11px;letter-spacing:.1em;padding:9px 14px;background:transparent;border:none;color:var(--dim);cursor:pointer;border-right:2px solid var(--line);transition:.15s}
+.seg-ctl button:last-child{border-right:none}
+.seg-ctl button:hover{color:var(--ink)}
+.seg-ctl button.on{background:rgba(47,230,200,.14);color:var(--aqua)}
+.ctl-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+input[type=range]{accent-color:var(--yellow);width:140px}
+.btn{
+  font-family:var(--mono);font-size:11px;letter-spacing:.12em;padding:10px 14px;
+  background:var(--panel2);border:2px solid var(--line2);color:var(--ink);cursor:pointer;border-radius:8px;
+  transition:.15s;
+}
+.btn:hover{transform:translate(-2px,-2px);box-shadow:4px 4px 0 rgba(255,212,31,.35);border-color:var(--yellow)}
+.btn:active{transform:translate(0,0);box-shadow:none}
+.btn.tog.on{border-color:var(--aqua);color:var(--aqua);background:rgba(47,230,200,.1)}
+#joltBtn{
+  width:104px;height:104px;border-radius:50%;flex:none;cursor:pointer;
+  font-family:var(--display);font-size:24px;letter-spacing:.05em;color:#fff;
+  background:radial-gradient(circle at 35% 30%,#ff7a5c,#e0330f 60%,#a01d05);
+  border:3px solid #7a1408;box-shadow:0 9px 0 #6d1204,0 14px 30px rgba(255,78,46,.35);
+  transition:.1s;text-shadow:0 2px 0 rgba(0,0,0,.4);
+}
+#joltBtn:hover{filter:brightness(1.1)}
+#joltBtn:active{transform:translateY(7px);box-shadow:0 2px 0 #6d1204}
+.fineprint{font-family:var(--mono);font-size:9px;color:var(--faint);letter-spacing:.06em;margin-top:10px}
+
+/* ---------- PVT ---------- */
+.pvt-stage{
+  height:170px;border:2px solid var(--line);border-radius:10px;background:#0a1126;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
+  cursor:pointer;user-select:none;transition:background .15s, border-color .15s;text-align:center;padding:10px;
+}
+.pvt-stage .big{font-family:var(--display);font-size:34px;letter-spacing:.05em}
+.pvt-stage .sub{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:.14em}
+.pvt-stage.wait{border-color:var(--yellow);background:rgba(255,212,31,.06)}
+.pvt-stage.wait .big{color:var(--yellow)}
+.pvt-stage.go{border-color:var(--aqua);background:rgba(47,230,200,.16)}
+.pvt-stage.go .big{color:var(--aqua);font-size:52px;animation:pulse .5s infinite}
+.pvt-stage.bad{border-color:var(--red);background:rgba(255,78,46,.1)}
+.pvt-stage.bad .big{color:var(--red)}
+.pvt-history{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;min-height:26px}
+.pvt-chip{font-family:var(--mono);font-size:11px;padding:4px 9px;border-radius:20px;border:1px solid var(--line2);color:var(--dim)}
+.pvt-chip.good{border-color:var(--aqua);color:var(--aqua)}
+.pvt-chip.mid{border-color:var(--yellow);color:var(--yellow)}
+.pvt-chip.badc{border-color:var(--red);color:var(--red)}
+
+/* ---------- protocol ---------- */
+#protoPrompt{font-size:20px;font-weight:700;line-height:1.35;min-height:82px}
+.proto-bar{height:12px;background:#0a1126;border:2px solid var(--line);border-radius:8px;overflow:hidden;margin:14px 0 12px}
+#protoFill{height:100%;width:0%;background:repeating-linear-gradient(45deg,var(--aqua) 0 10px,#18b39c 10px 20px);transition:width .4s linear}
+.proto-btns{display:flex;gap:10px;flex-wrap:wrap}
+.btn.go{border-color:var(--aqua);color:var(--aqua)}
+.btn.done{background:var(--aqua);color:#08251f;border-color:var(--aqua);font-weight:700}
+#protoTimer{font-family:var(--mono);font-size:12px;color:var(--dim);margin-left:auto;align-self:center}
+
+/* ---------- caffeine ---------- */
+.caf-btns{display:flex;gap:10px;flex-wrap:wrap}
+.caf-btn{
+  font-family:var(--mono);font-size:11px;padding:10px 12px;background:var(--panel2);
+  border:2px solid var(--line2);border-radius:8px;color:var(--ink);cursor:pointer;transition:.15s;
+}
+.caf-btn b{display:block;font-family:var(--display);font-size:18px;color:var(--yellow);letter-spacing:.04em}
+.caf-btn:hover{transform:translateY(-3px);border-color:var(--yellow);box-shadow:0 6px 14px rgba(255,212,31,.18)}
+.caf-read{display:flex;align-items:baseline;gap:12px;margin:16px 0 8px;flex-wrap:wrap}
+#cafLoad{font-family:var(--display);font-size:44px;color:var(--yellow)}
+#cafLoad.hot{color:var(--red);animation:pulse .7s infinite}
+#cafStatus{font-family:var(--mono);font-size:11px;letter-spacing:.12em;color:var(--dim)}
+#cafChart{width:100%;height:110px;display:block;background:#0a1126;border:2px solid var(--line);border-radius:8px}
+
+/* ---------- footer ---------- */
+.tickerbar{margin:26px 0 40px;border:2px solid var(--line);border-radius:10px;background:var(--panel);display:flex;align-items:stretch;overflow:hidden}
+.ticker-tag{
+  background:var(--yellow);color:#111;font-family:var(--display);font-size:14px;letter-spacing:.08em;
+  padding:12px 16px;display:flex;align-items:center;white-space:nowrap;
+}
+#ticker{padding:12px 18px;font-size:15px;color:var(--ink);transition:opacity .3s;align-self:center}
+
+/* ---------- overlays ---------- */
+#flash{position:fixed;inset:0;background:#fff;opacity:0;pointer-events:none;z-index:60;transition:opacity .6s ease-out}
+#flash.on{opacity:.8;transition:opacity .1s}
+#flash.shower{opacity:.95;background:radial-gradient(circle at 50% 40%,#fff,#ffe9a8 70%);transition:opacity 1.1s ease-in-out}
+#alarm{position:fixed;inset:0;z-index:80;display:none;align-items:center;justify-content:center;flex-direction:column;gap:16px;text-align:center;background:rgba(12,5,2,.94);cursor:pointer;padding:20px}
+#alarm.show{display:flex;animation:alarmpulse .7s ease-in-out infinite alternate}
+@keyframes alarmpulse{from{background:rgba(12,5,2,.94)}to{background:rgba(90,10,0,.9)}}
+#alarm .hz{position:absolute;left:0;right:0;height:16px;background:repeating-linear-gradient(45deg,var(--red) 0 16px,#100500 16px 32px)}
+#alarm .hz.t{top:0} #alarm .hz.b{bottom:0}
+#alarmTitle{font-family:var(--display);font-size:clamp(44px,9vw,110px);color:var(--red);letter-spacing:.03em;line-height:.95;text-shadow:0 0 40px rgba(255,78,46,.6)}
+#alarmSub{font-family:var(--mono);font-size:14px;letter-spacing:.18em;color:var(--yellow);max-width:640px;line-height:1.8}
+#alarmHint{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:.2em;animation:pulse 1s infinite}
+
+/* toasts */
+#toasts{position:fixed;top:18px;right:18px;z-index:70;display:flex;flex-direction:column;gap:10px;max-width:340px}
+.toast{
+  background:var(--panel2);border:2px solid var(--line2);border-left:8px solid var(--yellow);
+  padding:12px 14px;border-radius:8px;font-size:14px;box-shadow:0 10px 26px rgba(0,0,0,.5);
+  animation:slidein .3s ease-out;
+}
+.toast.aqua{border-left-color:var(--aqua)} .toast.red{border-left-color:var(--red)}
+.toast b{font-family:var(--mono);font-size:10px;letter-spacing:.2em;display:block;color:var(--dim);margin-bottom:3px}
+@keyframes slidein{from{transform:translateX(40px);opacity:0}to{transform:none;opacity:1}}
+.toast.out{opacity:0;transform:translateX(30px);transition:.4s}
+
+@media(prefers-reduced-motion:reduce){
+  .zz{display:none}
+  *{animation-duration:.01s !important}
+}
+</style>
+</head>
+<body>
+
+<div class="zz" aria-hidden="true">
+  <span style="left:6%;font-size:64px;animation-delay:0s">Z</span>
+  <span style="left:28%;font-size:40px;animation-delay:9s">Z</span>
+  <span style="left:57%;font-size:80px;animation-delay:17s">Z</span>
+  <span style="left:79%;font-size:46px;animation-delay:5s">Z</span>
+  <span style="left:93%;font-size:60px;animation-delay:24s">Z</span>
+</div>
+
+<div class="wrap">
+
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-eye" aria-hidden="true">
+        <svg viewBox="0 0 44 44"><circle cx="22" cy="22" r="20" fill="#0a1126" stroke="#ffd41f" stroke-width="2.5"/><circle cx="22" cy="22" r="9" fill="#2fe6c8"/><circle cx="22" cy="22" r="4" fill="#080d1c"/><rect class="lid" x="0" y="0" width="44" height="46" fill="#080d1c" opacity=".9"/></svg>
+      </div>
+      <div>
+        <h1>JOLT<span class="yl">//</span>CONSOLE</h1>
+        <div class="tagline">KEEP-AWAKE OPERATIONS DECK · NO SLEEP ON WATCH</div>
+      </div>
+    </div>
+    <div class="clockbox">
+      <div id="clock">--:--:--</div>
+      <div id="dateline">SHIFT ACTIVE</div>
+    </div>
+  </header>
+
+  <div class="hazard" aria-hidden="true"></div>
+
+  <main class="deck">
+
+    <!-- ============ LEFT: VIGILANCE UNIT ============ -->
+    <section class="col-left">
+      <div class="panel">
+        <div class="panel-h"><span class="led" id="statusLed"></span> VIGILANCE UNIT — UNIT 01 <span class="note">that's you</span></div>
+        <div class="panel-b">
+          <svg id="eyeSvg" viewBox="0 0 300 170" aria-hidden="true">
+            <defs><clipPath id="eyeClip"><path d="M12 85 Q150 -24 288 85 Q150 194 12 85 Z"/></clipPath></defs>
+            <path d="M12 85 Q150 -24 288 85 Q150 194 12 85 Z" fill="#f4f6ff" stroke="#26325e" stroke-width="4"/>
+            <g clip-path="url(#eyeClip)">
+              <g id="irisG">
+                <circle cx="150" cy="85" r="36" fill="#12306b"/>
+                <circle cx="150" cy="85" r="36" fill="none" stroke="#2fe6c8" stroke-width="3" opacity=".8"/>
+                <circle id="pupil" cx="150" cy="85" r="14" fill="#05070f"/>
+                <circle cx="139" cy="74" r="7" fill="#fff" opacity=".9"/>
+              </g>
+              <rect id="lidTop" x="-10" y="-24" width="320" height="20" fill="#0c1430"/>
+              <rect id="lidBot" x="-10" y="164" width="320" height="20" fill="#0c1430"/>
+              <line id="lidEdge" x1="0" x2="300" y1="-4" y2="-4" stroke="#41519c" stroke-width="3"/>
+            </g>
+          </svg>
+
+          <div class="statusline"><span id="statusText" class="ok">LOCKED IN</span></div>
+          <div class="status-sub" id="statusSub">DECAY ACTIVE — FEED THE METER</div>
+
+          <div class="meterwrap">
+            <div class="meter" id="meter"></div>
+            <div id="alertNum" class="ok">100<small>%</small></div>
+          </div>
+
+          <div class="sessrow">
+            <div><div class="lab">SESSION UPTIME</div><div id="elapsed">00:00:00</div></div>
+            <button class="chip" id="resetSess" title="Reset session & battery">⟲ RESET</button>
+          </div>
+
+          <div class="holdrow">
+            <div class="lab">HOLD THE LINE UNTIL</div>
+            <div class="chips">
+              <button class="chip" data-hold="30">+30 MIN</button>
+              <button class="chip" data-hold="60">+1 HR</button>
+              <button class="chip" data-hold="120">+2 HR</button>
+              <button class="chip" data-hold="0">CLEAR</button>
+            </div>
+            <div id="targetOut"></div>
+          </div>
+
+          <div class="statgrid">
+            <div class="stat"><b id="stJolts">0</b><span>JOLTS</span></div>
+            <div class="stat"><b id="stChecks">0</b><span>CHECK-INS</span></div>
+            <div class="stat"><b id="stBreaks">0</b><span>BREAKS</span></div>
+            <div class="stat"><b id="stAlarms">0</b><span>NODS-OFF</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ RIGHT: MODULES ============ -->
+    <section class="col-right">
+
+      <!-- dead man's switch -->
+      <div class="panel">
+        <div class="panel-h"><span class="led" id="dmLed"></span> DEAD-MAN SWITCH <span class="note">proves you're still conscious</span></div>
+        <div class="panel-b dm">
+          <div class="ringbox">
+            <svg width="128" height="128" viewBox="0 0 128 128">
+              <circle cx="64" cy="64" r="52" fill="none" stroke="#1a2450" stroke-width="10"/>
+              <circle id="ringFg" cx="64" cy="64" r="52" fill="none" stroke="#ffd41f" stroke-width="10"
+                      stroke-linecap="round" stroke-dasharray="326.7" stroke-dashoffset="0"/>
+            </svg>
+            <div class="ringnum"><b id="dmTime">02:00</b><span>TO CHECK-IN</span></div>
+          </div>
+          <div class="dm-main">
+            <button class="btn-up" id="imUpBtn">I'M UP ⚡</button>
+            <div class="dm-ctl">
+              <label class="switch"><input type="checkbox" id="dmToggle" checked><i></i></label>
+              <span>ARMED</span>
+              <label>EVERY
+                <select id="dmEvery">
+                  <option value="60">60 s</option>
+                  <option value="120" selected>120 s</option>
+                  <option value="180">180 s</option>
+                  <option value="300">300 s</option>
+                </select>
+              </label>
+              <span>or press <span class="kbd">SPACE</span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- stim station -->
+      <div class="panel">
+        <div class="panel-h"><span class="led"></span> STIM STATION <span class="note">halves battery drain while audio plays</span></div>
+        <div class="panel-b stim">
+          <div class="stim-left">
+            <div>
+              <div class="lab" style="margin-bottom:8px">NOISE FLOOR</div>
+              <div class="seg-ctl" id="noiseCtl">
+                <button data-n="off" class="on">OFF</button>
+                <button data-n="white">WHITE</button>
+                <button data-n="brown">BROWN</button>
+              </div>
+            </div>
+            <div class="ctl-row">
+              <button class="btn tog" id="beatBtn">◉ BINAURAL BEAT · 14 Hz</button>
+              <button class="btn" id="showerBtn">☀ LIGHT SHOWER</button>
+            </div>
+            <div class="ctl-row">
+              <span class="lab">VOL</span><input type="range" id="vol" min="0" max="100" value="60">
+            </div>
+            <div class="fineprint">audio synthesized locally · flashes are slow-fade (disable with FLASH toggle if photosensitive)
+              &nbsp;<label class="switch" style="vertical-align:middle"><input type="checkbox" id="flashToggle" checked><i></i></label></div>
+          </div>
+          <button id="joltBtn" title="Alarm burst + flash">JOLT!</button>
+        </div>
+      </div>
+
+      <div class="row2">
+        <!-- PVT -->
+        <div class="panel">
+          <div class="panel-h"><span class="led"></span> VIGILANCE TEST <span class="note">PVT-style reaction</span></div>
+          <div class="panel-b">
+            <div class="pvt-stage" id="pvtStage">
+              <div class="big" id="pvtBig">READY?</div>
+              <div class="sub" id="pvtSub">TAP TO START · 3 ROUNDS · WAIT FOR GREEN</div>
+            </div>
+            <div class="pvt-history" id="pvtHist"></div>
+          </div>
+        </div>
+
+        <!-- protocol -->
+        <div class="panel">
+          <div class="panel-h"><span class="led"></span> REBOOT PROTOCOL <span class="note">physical countersleep moves</span></div>
+          <div class="panel-b">
+            <div id="protoPrompt">Loading protocol…</div>
+            <div class="proto-bar"><div id="protoFill"></div></div>
+            <div class="proto-btns">
+              <button class="btn go" id="protoStart">▶ START BREAK</button>
+              <button class="btn done" id="protoDone" style="display:none">✓ DONE (+10%)</button>
+              <button class="btn" id="protoSkip">SKIP ▸</button>
+              <span id="protoTimer"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- caffeine -->
+      <div class="panel">
+        <div class="panel-h"><span class="led"></span> CAFFEINE LEDGER <span class="note">~5 h half-life model</span></div>
+        <div class="panel-b">
+          <div class="caf-btns">
+            <button class="caf-btn" data-mg="40"><b>TEA</b>40 MG</button>
+            <button class="caf-btn" data-mg="60"><b>ESPRESSO</b>60 MG</button>
+            <button class="caf-btn" data-mg="95"><b>COFFEE</b>95 MG</button>
+            <button class="caf-btn" data-mg="160"><b>ENERGY DRINK</b>160 MG</button>
+          </div>
+          <div class="caf-read">
+            <div id="cafLoad">0<span style="font-size:20px"> mg</span></div>
+            <div id="cafStatus">SYSTEM CLEAN</div>
+          </div>
+          <canvas id="cafChart"></canvas>
+        </div>
+      </div>
+
+    </section>
+  </main>
+
+  <div class="tickerbar">
+    <div class="ticker-tag">⚠ STAY-UP INTEL</div>
+    <div id="ticker">Bright light within the first minute of a break doubles its wake-up effect.</div>
+  </div>
+
+</div>
+
+<div id="flash" aria-hidden="true"></div>
+
+<div id="alarm" role="alertdialog">
+  <div class="hz t"></div><div class="hz b"></div>
+  <div id="alarmTitle">MICROSLEEP ALARM</div>
+  <div id="alarmSub">YOU STOPPED RESPONDING. TAP ANYWHERE OR HIT SPACE TO CONFIRM YOU'RE AWAKE.</div>
+  <div id="alarmHint">— TAP TO DISMISS —</div>
+</div>
+
+<div id="toasts"></div>
+
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+const clamp = (v,a,b)=>Math.max(a,Math.min(b,v));
+const REDUCED = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/* ================= STATE ================= */
+const S = {
+  alert: 100,
+  sessionStart: Date.now(),
+  target: null, celebrated: false, flatlined: false,
+  dm: { on:true, every:120, remain:120, lastGain:0 },
+  jolt: { every: 10*60, next: Date.now() + 10*60*1000 },
+  caf: [],
+  stats: { jolts:0, checks:0, breaks:0, alarms:0 },
+  showerCd: 0,
+};
+
+/* ================= CLOCK ================= */
+function pad(n){return String(n).padStart(2,"0")}
+function fmtDur(ms){ms=Math.max(0,ms);const s=Math.floor(ms/1000);return pad(Math.floor(s/3600))+":"+pad(Math.floor(s/60)%60)+":"+pad(s%60)}
+function tickClock(){
+  const d=new Date();
+  $("clock").textContent = pad(d.getHours())+":"+pad(d.getMinutes())+":"+pad(d.getSeconds());
+  $("dateline").textContent = d.toLocaleDateString("en-GB",{weekday:"short",day:"2-digit",month:"short"}).toUpperCase()+" · SHIFT ACTIVE";
+  $("elapsed").textContent = fmtDur(Date.now()-S.sessionStart);
+}
+
+/* ================= METER / STATUS ================= */
+const SEGS=20, meterEl=$("meter");
+for(let i=0;i<SEGS;i++){const d=document.createElement("div");d.className="seg";meterEl.appendChild(d);}
+function tier(a){
+  if(a>=70) return {name:"LOCKED IN", cls:"ok"};
+  if(a>=40) return {name:"FADING",    cls:"warn"};
+  if(a>=15) return {name:"CRITICAL",  cls:"crit"};
+  return {name:"DANGER", cls:"dead"};
+}
+function renderMeter(){
+  const t=tier(S.alert), lit=Math.round(S.alert/100*SEGS);
+  [...meterEl.children].forEach((s,i)=>{s.className="seg"+(i<lit?" lit "+t.cls:"")});
+  const num=$("alertNum");
+  num.className=t.cls; num.innerHTML=Math.round(S.alert)+"<small>%</small>";
+  const st=$("statusText"); st.textContent=t.name; st.className=t.cls;
+  const led=$("statusLed"); led.className="led"+(t.cls==="ok"?"":" "+t.cls);
+  $("statusSub").textContent = S.alert<=0 ? "BATTERY FLATLINED" :
+    audioActive() ? "DECAY ×0.5 — AUDIO SHIELD ACTIVE" : "DECAY ACTIVE — FEED THE METER";
+}
+
+/* ================= TOASTS & FLASH ================= */
+function toast(title,msg,cls){
+  const t=document.createElement("div"); t.className="toast"+(cls?" "+cls:"");
+  t.innerHTML="<b>"+title+"</b>"+msg;
+  $("toasts").appendChild(t);
+  setTimeout(()=>{t.classList.add("out");setTimeout(()=>t.remove(),450)},4200);
+}
+function flash(op){
+  if(REDUCED || !$("flashToggle").checked) return;
+  const f=$("flash"); f.style.transition="opacity .1s"; f.style.opacity=op;
+  setTimeout(()=>{f.style.transition="opacity .7s ease-out"; f.style.opacity=0},130);
+}
+function lightShower(){
+  if(Date.now()<S.showerCd){toast("RECHARGING","Light shower on cooldown — 30 s between doses.","red");return;}
+  S.showerCd=Date.now()+30000;
+  bump(6);
+  if(REDUCED||!$("flashToggle").checked){toast("☀ LIGHT SHOWER","Screen flash skipped — go stare at the brightest lamp you own.");return;}
+  const f=$("flash"); f.className="shower"; f.style.opacity=.95;
+  setTimeout(()=>{f.style.opacity=0; setTimeout(()=>f.className="",1200)},1400);
+  toast("☀ LIGHT SHOWER","+6% — retinas notified.");
+}
+
+/* ================= AUDIO ================= */
+let ctx=null, master=null, noiseSrc=null, noiseType="off", beatNodes=null;
+function ensureCtx(){
+  if(!ctx){
+    ctx=new (window.AudioContext||window.webkitAudioContext)();
+    master=ctx.createGain(); master.gain.value=$("vol").value/100*0.9; master.connect(ctx.destination);
+  }
+  if(ctx.state==="suspended") ctx.resume();
+}
+function audioActive(){return noiseType!=="off"||!!beatNodes}
+function noiseBuffer(type){
+  const len=2*ctx.sampleRate, buf=ctx.createBuffer(1,len,ctx.sampleRate), d=buf.getChannelData(0);
+  let last=0;
+  for(let i=0;i<len;i++){const w=Math.random()*2-1;
+    if(type==="white") d[i]=w*.6;
+    else {last=(last+.02*w)/1.02; d[i]=last*3.2;}
+  }
+  return buf;
+}
+function setNoise(type){
+  ensureCtx();
+  if(noiseSrc){noiseSrc.stop();noiseSrc.disconnect();noiseSrc=null;}
+  noiseType=type;
+  if(type!=="off"){
+    noiseSrc=ctx.createBufferSource(); noiseSrc.buffer=noiseBuffer(type); noiseSrc.loop=true;
+    const g=ctx.createGain(); g.gain.value=type==="white"?0.18:0.3;
+    noiseSrc.connect(g); g.connect(master); noiseSrc.start();
+  }
+  document.querySelectorAll("#noiseCtl button").forEach(b=>b.classList.toggle("on",b.dataset.n===type));
+}
+function toggleBeat(){
+  ensureCtx();
+  if(beatNodes){beatNodes.forEach(n=>{try{n.stop?n.stop():n.disconnect()}catch(e){}});beatNodes=null;}
+  else{
+    const g=ctx.createGain(); g.gain.value=.09; g.connect(master);
+    const oL=ctx.createOscillator(),oR=ctx.createOscillator(),pL=ctx.createStereoPanner(),pR=ctx.createStereoPanner();
+    oL.frequency.value=200;oR.frequency.value=214;pL.pan.value=-1;pR.pan.value=1;
+    oL.connect(pL);pL.connect(g);oR.connect(pR);pR.connect(g);oL.start();oR.start();
+    beatNodes=[oL,oR,pL,pR,g];
+  }
+  $("beatBtn").classList.toggle("on",!!beatNodes);
+  toast("◉ BINAURAL BEAT",beatNodes?"14 Hz alertness beat ON — headphones recommended.":"Beat off.",beatNodes?"aqua":"");
+}
+let beepTimer=null;
+function beep(freq,dur,when=0,type="square",vol=.3){
+  ensureCtx();
+  const o=ctx.createOscillator(),g=ctx.createGain();
+  o.type=type;o.frequency.value=freq;
+  g.gain.setValueAtTime(0,ctx.currentTime+when);
+  g.gain.linearRampToValueAtTime(vol,ctx.currentTime+when+.01);
+  g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+when+dur);
+  o.connect(g);g.connect(master);o.start(ctx.currentTime+when);o.stop(ctx.currentTime+when+dur+.05);
+}
+function joltSound(){[0,.18,.36].forEach(t=>beep(880,.12,t))}
+function alarmSoundStart(){alarmSoundStop();let hi=true;beepTimer=setInterval(()=>{beep(hi?988:659,.16,0,"square",.4);hi=!hi},300)}
+function alarmSoundStop(){if(beepTimer){clearInterval(beepTimer);beepTimer=null}}
+
+/* ================= DEAD-MAN SWITCH ================= */
+const RING_C=326.7;
+function dmReset(gain=true){
+  S.dm.remain=S.dm.every;
+  if(gain && Date.now()-S.dm.lastGain>25000){S.dm.lastGain=Date.now();bump(1);S.stats.checks++;}
+  renderStats();
+}
+function renderDm(){
+  const on=S.dm.on;
+  $("dmTime").textContent=on?pad(Math.floor(S.dm.remain/60))+":"+pad(Math.floor(S.dm.remain%60)):"--:--";
+  $("ringFg").style.strokeDashoffset=on?RING_C*(1-S.dm.remain/S.dm.every):RING_C;
+  $("ringFg").style.stroke=S.dm.remain<15?"#ff4e2e":"#ffd41f";
+  $("dmLed").className="led"+(on?(S.dm.remain<15?" dead":" warn"):"");
+}
+
+/* ================= ALARM OVERLAY ================= */
+let alarmActive=false;
+function triggerAlarm(title,sub){
+  alarmActive=true;
+  $("alarmTitle").textContent=title; $("alarmSub").textContent=sub;
+  $("alarm").classList.add("show");
+  try{alarmSoundStart()}catch(e){}
+  if(!REDUCED) document.body.style.animation="alarmpulse .7s infinite alternate";
+}
+function dismissAlarm(){
+  if(!alarmActive) return;
+  alarmActive=false; $("alarm").classList.remove("show"); alarmSoundStop();
+  document.body.style.animation="";
+  if(S.flatlined){
+    S.flatlined=false; S.alert=55;
+    toast("EMERGENCY REBOOT","Battery restored to 55%. Honest advice: a 20-minute nap beats fighting this.","red");
+  } else {
+    S.alert=clamp(S.alert-10,0,100); S.stats.alarms++;
+    toast("CHECK-IN LATE","−10% for nodding off. The switch noticed. It always notices.","red");
+  }
+  dmReset(false); renderStats(); renderMeter();
+}
+$("alarm").addEventListener("click",dismissAlarm);
+
+/* ================= JOLT ================= */
+const JOLT_TASKS=["Look at something 20+ feet away for 20 seconds.","Roll your shoulders backwards five times.","Drink a full glass of cold water.","Hum one song at full volume. Commit.","Wash your hands in cold water.","Stand up for the next 60 seconds — non-negotiable.","Take 5 deep breaths: in 4s, hold 4s, out 6s."];
+function jolt(manual){
+  ensureCtx(); joltSound(); flash(.7); bump(manual?4:3);
+  S.stats.jolts++; renderStats(); pupilKick();
+  toast("⚡ JOLT #"+S.stats.jolts, JOLT_TASKS[Math.floor(Math.random()*JOLT_TASKS.length)]);
+  if(!manual) S.jolt.next=Date.now()+S.jolt.every*1000;
+}
+$("joltBtn").addEventListener("click",()=>jolt(true));
+
+/* ================= PVT REACTION TEST ================= */
+const P={state:"idle",round:0,times:[],goAt:0,timer:null};
+const stage=$("pvtStage");
+function pvtSet(big,sub,cls){$("pvtBig").textContent=big;$("pvtSub").textContent=sub;stage.className="pvt-stage"+(cls?" "+cls:"")}
+stage.addEventListener("click",()=>{
+  if(alarmActive) return;
+  if(P.state==="idle"||P.state==="done"){
+    P.state="wait";P.round=0;P.times=[];
+    pvtSet("HOLD…","WAIT FOR GREEN — DON'T ANTICIPATE","wait");
+    pvtArm();
+  } else if(P.state==="wait"){
+    clearTimeout(P.timer);
+    pvtSet("TOO EARLY","JUMPY. TAP TO RETRY THAT ROUND.","bad");
+    P.state="retry";
+  } else if(P.state==="retry"){
+    P.state="wait";pvtSet("HOLD…","WAIT FOR GREEN","wait");pvtArm();
+  } else if(P.state==="go"){
+    const rt=Math.round(performance.now()-P.goAt);
+    P.times.push(rt);P.round++;
+    if(P.round>=3) pvtFinish();
+    else {pvtSet(rt+" ms","ROUND "+(P.round+1)+'/3 — TAP TO CONTINUE');P.state="retry2";}
+  } else if(P.state==="retry2"){
+    P.state="wait";pvtSet("HOLD…","WAIT FOR GREEN","wait");pvtArm();
+  }
+});
+function pvtArm(){P.timer=setTimeout(()=>{P.state="go";P.goAt=performance.now();pvtSet("TAP NOW!","GO GO GO","go")},1500+Math.random()*2500)}
+function pvtFinish(){
+  const avg=Math.round(P.times.reduce((a,b)=>a+b,0)/P.times.length);
+  let v,d,cls;
+  if(avg<280){v="RAZOR SHARP · +8%";d=8;cls="good"}
+  else if(avg<450){v="STEADY · +4%";d=4;cls="mid"}
+  else {v="SLOWDOWN DETECTED · −6% — RUN THE PROTOCOL";d=-6;cls="badc"}
+  bump(d); P.state="done";
+  pvtSet(avg+" ms AVG","VERDICT: "+v+" · TAP TO RE-TEST",cls==="badc"?"bad":"");
+  const c=document.createElement("span");c.className="pvt-chip "+cls;c.textContent=avg+" ms";
+  const h=$("pvtHist");h.prepend(c);while(h.children.length>6)h.lastChild.remove();
+  if(cls==="badc") toast("🐌 REACTION SLIPPING","Your average hit "+avg+" ms. Stand up, cold water, now.","red");
+  else toast("🧠 VIGILANCE TEST","Average "+avg+" ms across 3 rounds.","aqua");
+}
+
+/* ================= PROTOCOL ================= */
+const PROMPTS=[
+  "Stand up and do 10 jumping jacks. Full commitment.",
+  "Run your wrists under cold water for 30 seconds.",
+  "Splash cold water on your face. The classic works.",
+  "Step outside or to a window — 1 minute of bright light.",
+  "Walk one full lap of your space. Leave the phone behind.",
+  "5 slow squats + 5 deep breaths. Feel your legs exist.",
+  "Chew something crunchy or strongly minty.",
+  "Open a window. Cold air is free caffeine.",
+  "Put on one high-energy song. Standing only.",
+  "Stretch: reach for the ceiling for 30 seconds.",
+];
+const PROTO={idx:0,active:false,remain:0,total:60};
+function protoShow(){
+  $("protoPrompt").textContent=(PROTO.idx+1)+". "+PROMPTS[PROTO.idx];
+  $("protoFill").style.width="0%";$("protoTimer").textContent="";
+  $("protoStart").style.display="";$("protoDone").style.display="none";
+}
+$("protoStart").addEventListener("click",()=>{PROTO.active=true;PROTO.remain=PROTO.total;
+  $("protoStart").style.display="none";$("protoDone").style.display="";});
+$("protoSkip").addEventListener("click",()=>{PROTO.active=false;PROTO.idx=(PROTO.idx+1)%PROMPTS.length;protoShow();});
+$("protoDone").addEventListener("click",()=>{
+  PROTO.active=false;S.stats.breaks++;bump(10);renderStats();
+  toast("✓ PROTOCOL COMPLETE","+10% alertness. Blood flow restored.","aqua");
+  beep(660,.1,0,"sine",.25);beep(990,.15,.12,"sine",.25);
+  PROTO.idx=(PROTO.idx+1)%PROMPTS.length;protoShow();
+});
+function protoTick(dt){
+  if(!PROTO.active) return;
+  PROTO.remain-=dt;
+  $("protoFill").style.width=(100*(1-PROTO.remain/PROTO.total))+"%";
+  $("protoTimer").textContent=Math.ceil(PROTO.remain)+" s";
+  if(PROTO.remain<=0){PROTO.remain=0;$("protoDone").click();}
+}
+
+/* ================= CAFFEINE ================= */
+const cafNow=()=>S.caf.reduce((s,c)=>s+c.mg*Math.pow(.5,(Date.now()-c.t)/5/3600000),0);
+function addCaf(mg,label){
+  S.caf.push({t:Date.now(),mg});
+  const load=cafNow();
+  toast("☕ "+label+" LOGGED","+"+mg+" mg — current load "+Math.round(load)+" mg.");
+  beep(520,.08,0,"sine",.2);
+  if(load>400) toast("⚠ HIGH LOAD","Over 400 mg in system. Jitters ≠ alertness — drink water.","red");
+  drawCaf();
+}
+document.querySelectorAll(".caf-btn").forEach(b=>b.addEventListener("click",()=>addCaf(+b.dataset.mg,b.querySelector("b").textContent)));
+function cafText(){
+  const load=cafNow(),el=$("cafLoad");
+  el.innerHTML=Math.round(load)+"<span style='font-size:20px'> mg</span>";
+  el.className=load>400?"hot":"";
+  let st="SYSTEM CLEAN";
+  if(load>0){
+    let h=0,t=Date.now();
+    while(h<16){t+=6*3600000;if(S.caf.reduce((s,c)=>s+c.mg*Math.pow(.5,(t-c.t)/5/3600000),0)<50)break;h+=.25;}
+    st=load>400?"⚠ JITTER ZONE":("LOAD ACTIVE · DROPS UNDER 50 MG IN ~"+(h<0.25?"<15 MIN":h.toFixed(1).replace(".5","½")+" H"));
+  }
+  $("cafStatus").textContent=st;
+}
+function drawCaf(){
+  cafText();
+  const cv=$("cafChart"),dpr=devicePixelRatio||1;
+  const W=cv.clientWidth,H=110;cv.width=W*dpr;cv.height=H*dpr;
+  const x=cv.getContext("2d");x.scale(dpr,dpr);x.clearRect(0,0,W,H);
+  x.font="10px Space Mono";x.fillStyle="#8b96c4";
+  if(!S.caf.length){x.fillText("Log a dose to project the curve.",12,H/2);return;}
+  const t0=Math.min(S.caf[0].t,S.sessionStart),now=Date.now();
+  let end=now;while(end<now+16*3600000&&cafAt(end)>8)end+=10*60000;
+  const maxMg=Math.max(120,cafAt(t0)*1.15,...S.caf.map(c=>c.mg));
+  const X=t=>(t-t0)/(end-t0)*(W-24)+12, Y=m=>H-16-(m/maxMg)*(H-34);
+  function cafAt(t){return S.caf.reduce((s,c)=>t>=c.t?s+c.mg*Math.pow(.5,(t-c.t)/5/3600000):s,0)}
+  // area
+  x.beginPath();x.moveTo(X(t0),Y(0));
+  for(let t=t0;t<=end;t+=5*60000)x.lineTo(X(t),Y(cafAt(t)));
+  x.lineTo(X(end),Y(0));x.closePath();
+  x.fillStyle="rgba(255,212,31,.16)";x.fill();
+  x.beginPath();for(let t=t0;t<=end;t+=5*60000){const px=X(t),py=Y(cafAt(t));t===t0?x.moveTo(px,py):x.lineTo(px,py)}
+  x.strokeStyle="#ffd41f";x.lineWidth=2;x.stroke();
+  // 50mg threshold
+  x.setLineDash([4,4]);x.strokeStyle="#ff4e2e";x.beginPath();x.moveTo(12,Y(50));x.lineTo(W-12,Y(50));x.stroke();x.setLineDash([]);
+  x.fillStyle="#ff4e2e";x.fillText("50mg sleep threshold",14,Y(50)-4);
+  // now line
+  x.strokeStyle="#2fe6c8";x.beginPath();x.moveTo(X(now),8);x.lineTo(X(now),H-14);x.stroke();
+  x.fillStyle="#2fe6c8";x.fillText("NOW",X(now)+4,16);
+  // dose dots
+  x.fillStyle="#ffd41f";S.caf.forEach(c=>{x.beginPath();x.arc(X(c.t),Y(cafAt(c.t)),3.5,0,7);x.fill()});
+}
+
+/* ================= TARGET HOLD ================= */
+document.querySelectorAll("[data-hold]").forEach(b=>b.addEventListener("click",()=>{
+  const m=+b.dataset.hold;
+  if(!m){S.target=null;S.celebrated=false;$("targetOut").textContent="";return;}
+  S.target=Date.now()+m*60000;S.celebrated=false;
+  toast("⏱ TARGET SET","Hold the line for "+m+" minutes.");
+}));
+function renderTarget(){
+  const el=$("targetOut");
+  if(!S.target){el.textContent="";return;}
+  const rem=S.target-Date.now();
+  if(rem<=0){
+    if(!S.celebrated){S.celebrated=true;flash(.6);joltSound();bump(5);
+      toast("🏁 YOU MADE IT","Target reached — you survived the shift. Permission to crash: GRANTED.","aqua");}
+    el.textContent="✓ TARGET REACHED — SAFE TO SLEEP";el.style.color="#2fe6c8";
+  } else {el.textContent="▸ HOLD FOR "+fmtDur(rem);el.style.color="";}
+}
+
+/* ================= STATS / RESET ================= */
+function renderStats(){
+  $("stJolts").textContent=S.stats.jolts;$("stChecks").textContent=S.stats.checks;
+  $("stBreaks").textContent=S.stats.breaks;$("stAlarms").textContent=S.stats.alarms;
+}
+$("resetSess").addEventListener("click",()=>{
+  S.alert=100;S.sessionStart=Date.now();S.flatlined=false;S.celebrated=false;
+  S.stats={jolts:0,checks:0,breaks:0,alarms:0};dmReset(false);renderStats();renderMeter();
+  toast("⟲ SESSION RESET","Fresh battery. New shift. Same mission: stay up.");
+});
+
+/* ================= BUMP ================= */
+function bump(n){S.alert=clamp(S.alert+n,0,100);renderMeter();}
+
+/* ================= EYE ================= */
+let mx=innerWidth/2,my=innerHeight/2,ix=0,iy=0,blink=0,nextBlink=Date.now()+2500,pupilK=0;
+addEventListener("mousemove",e=>{mx=e.clientX;my=e.clientY});
+function pupilKick(){pupilK=1}
+function eyeFrame(){
+  const svg=$("eyeSvg");if(svg){
+    const r=svg.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;
+    const tx=clamp((mx-cx)/r.width,-1,1)*26, ty=clamp((my-cy)/r.height,-1,1)*13;
+    ix+=(tx-ix)*.12; iy+=(ty-iy)*.12;
+    $("irisG").setAttribute("transform","translate("+ix.toFixed(2)+" "+iy.toFixed(2)+")");
+    // blink scheduling
+    const now=Date.now();
+    if(now>nextBlink){blink=1;nextBlink=now+(S.alert<25?1800:3000)+Math.random()*3500;}
+    blink*=.82;if(blink<.02)blink=0;
+    const droop=(1-S.alert/100)*.9;
+    const clos=clamp(droop+blink*(1-droop),0,1);
+    $("lidTop").setAttribute("height",(20+clos*170).toFixed(1));
+    $("lidBot").setAttribute("height",(20+clos*60).toFixed(1));
+    $("lidBot").setAttribute("y",(170-clos*60).toFixed(1));
+    $("lidEdge").setAttribute("y1",(-4+clos*170).toFixed(1));$("lidEdge").setAttribute("y2",(-4+clos*170).toFixed(1));
+    pupilK*=.94;
+    $("pupil").setAttribute("r",(14+pupilK*8).toFixed(1));
+  }
+  requestAnimationFrame(eyeFrame);
+}
+
+/* ================= TICKER ================= */
+const TIPS=[
+  "Bright light within the first minute of a break doubles its wake-up effect.",
+  "Cold water on wrists + a face splash = fast reboot, no caffeine required.",
+  "Caffeine's half-life is ~5 hours. Log it here and plan your eventual crash.",
+  "Chewing tricks the brain into 'mealtime' mode — it fights sleep hard.",
+  "If you must nap later: 20 minutes beats 60. Always set an alarm.",
+  "Talking to another human is elite-tier anti-sleep technology.",
+  "Standing up is a cheat code — you can't fall asleep standing. Probably.",
+  "Slight discomfort helps: cold room, bright light, upright posture.",
+  "Sugar spikes then crashes. Protein + cold water sustains.",
+];
+let tipI=0;
+setInterval(()=>{
+  const t=$("ticker");t.style.opacity=0;
+  setTimeout(()=>{tipI=(tipI+1)%TIPS.length;t.textContent=TIPS[tipI];t.style.opacity=1},320);
+},9000);
+
+/* ================= MAIN LOOP ================= */
+let last=Date.now();
+setInterval(()=>{
+  const now=Date.now(),dt=(now-last)/1000;last=now;
+  tickClock();
+  // decay (audio halves it)
+  if(S.alert>0){
+    S.alert=clamp(S.alert-dt*0.03*(audioActive()?0.5:1),0,100);
+    if(S.alert<=0&&!S.flatlined){S.flatlined=true;
+      triggerAlarm("BATTERY FLATLINED","ALERTNESS HIT 0%. THIS IS YOUR SIGN — TAP IF YOU'RE STILL HERE.");}
+    renderMeter();
+  }
+  // dead man's switch
+  if(S.dm.on&&!alarmActive){
+    S.dm.remain-=dt;
+    if(S.dm.remain<=0){S.dm.remain=0;
+      triggerAlarm("MICROSLEEP ALARM","YOU STOPPED RESPONDING. TAP ANYWHERE OR HIT SPACE TO CONFIRM YOU'RE AWAKE.");}
+  }
+  renderDm();
+  // auto jolt
+  if(now>=S.jolt.next){jolt(false)}
+  protoTick(dt);
+  renderTarget();
+},250);
+setInterval(()=>{if(S.caf.length)drawCaf()},30000);
+addEventListener("resize",()=>{if(S.caf.length)drawCaf()});
+
+/* ================= CONTROLS ================= */
+$("dmToggle").addEventListener("change",e=>{S.dm.on=e.target.checked;S.dm.remain=S.dm.every;
+  toast("DEAD-MAN SWITCH",S.dm.on?"Armed. Check in every "+S.dm.every+" s or face the alarm.":"Disarmed. Bold move.",S.dm.on?"":"red")});
+$("dmEvery").addEventListener("change",e=>{S.dm.every=+e.target.value;S.dm.remain=S.dm.every});
+$("imUpBtn").addEventListener("click",()=>{dmReset();beep(740,.07,0,"sine",.25);flash(.25)});
+document.querySelectorAll("#noiseCtl button").forEach(b=>b.addEventListener("click",()=>setNoise(b.dataset.n)));
+$("beatBtn").addEventListener("click",toggleBeat);
+$("showerBtn").addEventListener("click",lightShower);
+$("vol").addEventListener("input",()=>{if(master)master.gain.value=$("vol").value/100*0.9});
+addEventListener("keydown",e=>{
+  if(e.code!=="Space"||e.target.closest("button,input,select,textarea"))return;
+  e.preventDefault();
+  if(alarmActive)dismissAlarm();else dmReset();
+});
+
+/* ================= INIT ================= */
+tickClock();renderMeter();renderDm();renderStats();protoShow();drawCaf();
+requestAnimationFrame(eyeFrame);
+S.jolt.next=Date.now()+S.jolt.every*1000;
+setTimeout(()=>toast("👁 WELCOME TO JOLT CONSOLE","Your alertness battery drains ~2%/min. Jolts, breaks, caffeine and check-ins refill it. Space bar = I'm awake."),800);
+</script>
+</body>
+</html>
